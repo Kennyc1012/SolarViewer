@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Solar Viewer</string>
+
+    <!-- Tab titles -->
+    <string name="tab_home">Home</string>
+    <string name="tab_daily">Daily</string>
+
+    <!-- HomeFragment -->
+    <string name="home_stat_title_solar">Solar</string>
+    <string name="home_stat_title_net">Net Energy</string>
+    <string name="home_stat_title_usage">Energy Usage</string>
+    <string name="home_stat_title_exported">Excess Energy</string>
+    <string name="home_stat_produced">Produced</string>
+    <string name="home_stat_exported">Exported</string>
+    <string name="home_stat_imported">Imported</string>
+    <string name="home_kwh_consumed">%1$s kWh\nConsumed\nas of %2$s</string>
+
+    <!-- Daily Fragment -->
+    <string name="daily_stat_header_both">%1$dwH produced, %2$dwH consumed at %3$s</string>
+    <string name="daily_stat_header_consumed">%1$dwH consumed at %2$s</string>
+    <string name="daily_produced">%skWh Produced</string>
+    <string name="daily_consumed">%skWh Consumed</string>
+
+    <!-- Errors -->
+    <string name="date_error">Invalid date range for system</string>
+    <string name="rate_limit_error">User has been rate limited. Please try again in a few minutes.</string>
+
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="donut_inner_radius">100dp</dimen>
+    <dimen name="donut_thickness">15dp</dimen>
+</resources>

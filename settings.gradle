@@ -1,0 +1,5 @@
+rootProject.name = "SolarViewer"
+include ':app'
+include ':api-enphase'
+include ':data'
+include ':data-enphase'
