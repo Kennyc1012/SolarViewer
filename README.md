@@ -5,7 +5,7 @@ App to view solar system powered by [Enphase](https://enphase.com/en-us)
 <img src="https://raw.githubusercontent.com/Kennyc1012/SolarViewer/master/screenshots/1.png" width="480"/>
 <img src="https://raw.githubusercontent.com/Kennyc1012/SolarViewer/master/screenshots/2.png" width="480"/>
 
-# Buidling
+# Building
 To build the app, you need to supply an `APP_ID` and a `USER_ID` in your `gradle.properties` file.
 
 ```groovy
