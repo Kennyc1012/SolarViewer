@@ -4,12 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.kennyc.api_enphase.EnphaseApi
 import com.kennyc.api_enphase.model.exception.NetworkException
+import com.kennyc.data_enphase.cache.TimedCache
 import com.kennyc.data_enphase.db.EnphaseDao
 import com.kennyc.data_enphase.db.EnphaseDatabase
 import com.kennyc.data_enphase.db.model.RoomSolarSystem
+import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.cache.TimedCache
 import com.kennyc.solarviewer.data.model.*
 import com.kennyc.solarviewer.data.model.exception.InvalidDateRangeException
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
@@ -25,10 +26,12 @@ private const val KEY_SYSTEM_CONSUMPTION = ".SYSTEM_CONSUMPTION"
 
 class EnphaseSolarRepository(
     context: Context,
+    clock: Clock,
     private val api: EnphaseApi,
-    private val logger: Logger,
-    private val cache: TimedCache
+    private val logger: Logger
 ) : SolarRepository {
+
+    private val cache = TimedCache(logger, clock)
 
     private val dao: EnphaseDao = Room.databaseBuilder(
         context,
@@ -51,7 +54,6 @@ class EnphaseSolarRepository(
             try {
                 val apiSystems = api.getSystems().systems
                     .map { SolarSystem(it.id, it.name, toSystemStatus(it.status)) }
-
 
                 val currentTime = System.currentTimeMillis()
                 val toInsert =

@@ -1,5 +1,4 @@
-package com.kennyc.solarviewer.data.cache
-
+package com.kennyc.data_enphase.cache
 
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.Logger

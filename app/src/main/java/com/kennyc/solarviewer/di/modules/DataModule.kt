@@ -7,7 +7,6 @@ import com.kennyc.solarviewer.BuildConfig
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.cache.TimedCache
 import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.utils.AppClock
 import com.kennyc.solarviewer.utils.AppLogger
@@ -40,8 +39,8 @@ class DataModule {
         context: Context,
         component: EnphaseComponent,
         logger: Logger,
-        cache: TimedCache
-    ): SolarRepository = EnphaseSolarRepository(context, component.api(), logger, cache)
+        clock: Clock
+    ): SolarRepository = EnphaseSolarRepository(context, clock, component.api(), logger)
 
     @Provides
     @Singleton
@@ -57,8 +56,4 @@ class DataModule {
     @Provides
     @Singleton
     fun providesClock(): Clock = AppClock()
-
-    @Provides
-    @Singleton
-    fun providesTimedCache(clock: Clock, logger: Logger) = TimedCache(logger, clock)
 }
