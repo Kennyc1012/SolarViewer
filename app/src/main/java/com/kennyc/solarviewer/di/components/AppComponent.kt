@@ -18,7 +18,6 @@ interface AppComponent {
 
     fun logger(): Logger
 
-
     fun inject(activity: MainActivity)
 
     @Component.Builder

@@ -28,7 +28,7 @@ class TimedCache(private val logger: Logger, private val clock: Clock) {
                     return any
                 } else {
                     logger.i(TAG, "Item present but has expired, removing")
-                    map.remove(key)
+                    remove(key)
                 }
             }
             ?: run {

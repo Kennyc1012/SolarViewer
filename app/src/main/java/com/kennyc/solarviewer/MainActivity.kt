@@ -14,10 +14,8 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.datepicker.MaterialDatePicker
-import com.kennyc.solarviewer.daily.BarChartXAxisFormatter
 import com.kennyc.solarviewer.data.model.SolarSystem
 import com.kennyc.solarviewer.ui.SolarDropDownAdapter
-import com.kennyc.view.MultiStateView
 import java.time.ZoneId
 import java.util.*
 import javax.inject.Inject

@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer
 
 import android.app.Application
-import android.content.Context
 import android.os.StrictMode
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.di.components.DaggerAppComponent
@@ -16,7 +15,7 @@ class SolarApp : Application() {
             .build()
     }
 
-    lateinit var logger:Logger
+    lateinit var logger: Logger
 
     override fun onCreate() {
         super.onCreate()
@@ -37,11 +36,5 @@ class SolarApp : Application() {
         }
 
         logger = component.logger()
-    }
-
-    companion object {
-        fun getInstance(context: Context): SolarApp {
-            return context.applicationContext as SolarApp
-        }
     }
 }
