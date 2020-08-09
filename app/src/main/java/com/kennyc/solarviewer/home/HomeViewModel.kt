@@ -35,7 +35,6 @@ class HomeViewModel @Inject constructor(
 
     private val selectedSystem = BroadcastChannel<SolarSystem>(1)
 
-    // TODO Handle errors
     val summary: LiveData<SolarSystemReport> = selectedDate.asFlow()
         .combine(selectedSystem.asFlow()) { date, system ->
             val start = clock.midnight(date)

@@ -50,6 +50,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha06'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation 'androidx.preference:preference-ktx:1.1.1'
 
     //DAGGER
     implementation "com.google.dagger:dagger:$dagger"

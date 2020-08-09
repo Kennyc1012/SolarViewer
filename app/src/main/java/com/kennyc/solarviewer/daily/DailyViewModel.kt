@@ -47,7 +47,6 @@ class DailyViewModel @Inject constructor(
 
     private val selectedSystem = BroadcastChannel<SolarSystem>(1)
 
-    // TODO Handle errors
     val lineData = selectedDate.asFlow()
         .combine(selectedSystem.asFlow()) { date, system ->
             val startTime = clock.midnight(date)

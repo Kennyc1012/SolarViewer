@@ -5,10 +5,12 @@ import com.kennyc.api_enphase.di.EnphaseComponent
 import com.kennyc.data_enphase.EnphaseSolarRepository
 import com.kennyc.solarviewer.BuildConfig
 import com.kennyc.solarviewer.data.Clock
+import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.utils.AppClock
+import com.kennyc.solarviewer.utils.AppLocalSettings
 import com.kennyc.solarviewer.utils.AppLogger
 import dagger.Module
 import dagger.Provides
@@ -56,4 +58,8 @@ class DataModule {
     @Provides
     @Singleton
     fun providesClock(): Clock = AppClock()
+
+    @Provides
+    @Singleton
+    fun providesLocalSettings(context: Context): LocalSettings = AppLocalSettings(context)
 }
