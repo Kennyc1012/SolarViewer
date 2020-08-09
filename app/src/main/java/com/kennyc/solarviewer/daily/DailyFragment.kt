@@ -14,19 +14,14 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
-import com.google.android.material.datepicker.MaterialDatePicker
 import com.kennyc.solarviewer.BindingFragment
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
-import com.kennyc.solarviewer.data.model.ConsumptionStats
-import com.kennyc.solarviewer.data.model.ProductionStats
 import com.kennyc.solarviewer.databinding.FragmentDailyBinding
 import com.kennyc.solarviewer.di.components.FragmentComponent
 import com.kennyc.view.MultiStateView
 import java.text.SimpleDateFormat
-import java.time.ZoneId
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -132,13 +127,7 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
 
         barData.dataSets.first().run {
             for (x in 0 until entryCount) {
-                val item = getEntryForIndex(x).data
-
-                if (item is ProductionStats) {
-                    time.add(Date(TimeUnit.SECONDS.toMillis(item.endingAtTS)))
-                } else if (item is ConsumptionStats) {
-                    time.add(Date(TimeUnit.SECONDS.toMillis(item.endingAtTS)))
-                }
+                getEntryForIndex(x).data.takeIf { it is Date }?.let { time.add(it as Date) }
             }
         }
 
