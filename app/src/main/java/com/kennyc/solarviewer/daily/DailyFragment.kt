@@ -122,7 +122,7 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
             })
         }
 
-        viewModel.barEntries.observe(viewLifecycleOwner, Observer { onDailyDataUpdated(it) })
+        viewModel.solarData.observe(viewLifecycleOwner, Observer { onDailyDataUpdated(it) })
         viewModel.dateError.observe(viewLifecycleOwner, Observer {
             Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
             binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT

@@ -37,7 +37,7 @@ class DailyViewModel @Inject constructor(
 
     private val selectedSystem = BroadcastChannel<SolarSystem>(1)
 
-    val barEntries = selectedDate.asFlow()
+    val solarData = selectedDate.asFlow()
         .combine(selectedSystem.asFlow()) { date, system ->
             val startTime = clock.midnight(date)
             val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
