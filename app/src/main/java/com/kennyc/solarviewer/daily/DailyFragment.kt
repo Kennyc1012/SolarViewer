@@ -5,30 +5,51 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.kennyc.solarviewer.BindingFragment
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
+import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.databinding.FragmentDailyBinding
 import com.kennyc.solarviewer.di.components.FragmentComponent
+import com.kennyc.solarviewer.utils.asKilowattString
 import com.kennyc.view.MultiStateView
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import javax.inject.Named
+import kotlin.math.absoluteValue
 
 
+@ExperimentalCoroutinesApi
 class DailyFragment : BindingFragment<FragmentDailyBinding>() {
 
     @Inject
     lateinit var factory: ViewModelProvider.Factory
+
+    @ColorInt
+    @JvmField
+    @Inject
+    @Named("produced-color")
+    var producedColor: Int = 0
+
+    @ColorInt
+    @JvmField
+    @Inject
+    @Named("consumed-color")
+    var consumedColor: Int = 0
 
     private val viewModel by viewModels<DailyViewModel> { factory }
 
@@ -101,7 +122,7 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
             })
         }
 
-        viewModel.lineData.observe(viewLifecycleOwner, Observer { onDailyDataUpdated(it) })
+        viewModel.barEntries.observe(viewLifecycleOwner, Observer { onDailyDataUpdated(it) })
         viewModel.dateError.observe(viewLifecycleOwner, Observer {
             Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
             binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
@@ -122,17 +143,38 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
         })
     }
 
-    private fun onDailyDataUpdated(barData: BarData) {
-        val time = mutableListOf<Date>()
-
-        barData.dataSets.first().run {
-            for (x in 0 until entryCount) {
-                getEntryForIndex(x).data.takeIf { it is Date }?.let { time.add(it as Date) }
+    private fun onDailyDataUpdated(solarData: List<SolarGraphData>) {
+        val barColors = Array(solarData.size) {
+            when (it % 2 == 0) {
+                true -> producedColor
+                else -> consumedColor
             }
+        }.toList()
+
+        val time = mutableListOf<Date>()
+        val entries = solarData.map {
+            time.add(it.time)
+            BarEntry(it.x, floatArrayOf(it.produced, it.consumed), it.time)
+        }
+
+        val dataSet = BarDataSet(entries, null).apply {
+            val consumedLabel = getString(
+                R.string.daily_consumed,
+                solarData.sumBy { it.consumed.toInt().absoluteValue }.asKilowattString()
+            )
+
+            val producedLabel = getString(
+                R.string.daily_produced,
+                solarData.sumBy { it.produced.toInt() }.asKilowattString()
+            )
+
+            stackLabels = arrayOf(producedLabel, consumedLabel)
+            colors = barColors
+            setDrawValues(false)
         }
 
         binding.dailyChart.run {
-            data = barData
+            data = BarData(dataSet)
             xAxis.valueFormatter = BarChartXAxisFormatter(time)
             invalidate()
         }

@@ -1,22 +1,13 @@
 package com.kennyc.solarviewer.daily
 
-import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.ConsumptionStats
-import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
-import com.kennyc.solarviewer.data.model.ProductionStats
-import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.data.model.*
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
-import com.kennyc.solarviewer.utils.asKilowattString
 import com.kennyc.solarviewer.utils.toNegative
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -36,7 +27,6 @@ import javax.inject.Inject
 class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock,
-    private val context: Context,
     private val provider: CoroutineDispatchProvider
 ) : ViewModel() {
 
@@ -47,7 +37,7 @@ class DailyViewModel @Inject constructor(
 
     private val selectedSystem = BroadcastChannel<SolarSystem>(1)
 
-    val lineData = selectedDate.asFlow()
+    val barEntries = selectedDate.asFlow()
         .combine(selectedSystem.asFlow()) { date, system ->
             val startTime = clock.midnight(date)
             val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
@@ -69,20 +59,18 @@ class DailyViewModel @Inject constructor(
     private fun buildData(
         consumed: List<ConsumptionStats>,
         produced: List<ProductionStats>
-    ): BarData {
-        val entries = mutableListOf<BarEntry>()
+    ): List<SolarGraphData> {
+        val entries = mutableListOf<SolarGraphData>()
 
         for (x in consumed.indices) {
             val consumedItem = consumed[x]
             val producedItem = produced[x]
             val date = Date(TimeUnit.SECONDS.toMillis(producedItem.endingAtTS))
 
-            val entry = BarEntry(
+            val entry = SolarGraphData(
                 x.toFloat(),
-                floatArrayOf(
-                    producedItem.powerCreatedInWh.toFloat(),
-                    consumedItem.powerConsumedInWh.toNegative().toFloat()
-                ),
+                producedItem.powerCreatedInWh.toFloat(),
+                consumedItem.powerConsumedInWh.toNegative().toFloat(),
                 date
             )
 
@@ -96,34 +84,11 @@ class DailyViewModel @Inject constructor(
             for (x in entries.size until DAY_STAT_SIZE) {
                 time += TimeUnit.MINUTES.toSeconds(15)
                 val date = Date(TimeUnit.SECONDS.toMillis(time))
-                entries.add(BarEntry(x.toFloat(), floatArrayOf(0f, 0f), date))
+                entries.add(SolarGraphData(x.toFloat(), 0f, 0f, date))
             }
         }
 
-        val barColors = Array(entries.size) {
-            when (it % 2 == 0) {
-                true -> context.resources.getColor(R.color.color_production, context.theme)
-                else -> context.resources.getColor(R.color.color_consumption, context.theme)
-            }
-        }.toList()
-
-        val dataSet = BarDataSet(entries, null).apply {
-            val consumedLabel = context.getString(
-                R.string.daily_consumed,
-                consumed.sumBy { it.powerConsumedInWh }.asKilowattString()
-            )
-
-            val producedLabel = context.getString(
-                R.string.daily_produced,
-                produced.sumBy { it.powerCreatedInWh }.asKilowattString()
-            )
-
-            stackLabels = arrayOf(producedLabel, consumedLabel)
-            colors = barColors
-            setDrawValues(false)
-        }
-
-        return BarData(dataSet)
+        return entries
     }
 
     fun setSelectedSystem(system: SolarSystem) = selectedSystem.offer(system)

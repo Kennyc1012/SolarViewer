@@ -22,9 +22,9 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 @FlowPreview
 class HomeViewModel @Inject constructor(
+    private val provider: CoroutineDispatchProvider,
     repo: SolarRepository,
-    clock: Clock,
-    private val provider: CoroutineDispatchProvider
+    clock: Clock
 ) : ViewModel() {
 
     val dateError = MutableLiveData<Unit>()

@@ -1,9 +1,11 @@
 package com.kennyc.solarviewer.di.modules
 
 import android.content.Context
+import androidx.annotation.ColorInt
 import com.kennyc.api_enphase.di.EnphaseComponent
 import com.kennyc.data_enphase.EnphaseSolarRepository
 import com.kennyc.solarviewer.BuildConfig
+import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.Logger
@@ -62,4 +64,18 @@ class DataModule {
     @Provides
     @Singleton
     fun providesLocalSettings(context: Context): LocalSettings = AppLocalSettings(context)
+
+    @Provides
+    @Singleton
+    @ColorInt
+    @Named("produced-color")
+    fun providesProducedColor(context: Context): Int =
+        context.resources.getColor(R.color.color_production, context.theme)
+
+    @Provides
+    @Singleton
+    @ColorInt
+    @Named("consumed-color")
+    fun providesConsumedColor(context: Context): Int =
+        context.resources.getColor(R.color.color_consumption, context.theme)
 }
