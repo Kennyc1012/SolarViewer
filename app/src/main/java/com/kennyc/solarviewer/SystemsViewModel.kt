@@ -16,8 +16,8 @@ class SystemsViewModel @Inject constructor(
     clock: Clock
 ) : ViewModel() {
 
-    val date: LiveData<Date> = MutableLiveData<Date>().apply {
-        value = clock.currentDate()
+    val date: LiveData<Date> = liveData(provider.main) {
+        emit(clock.currentDate())
     }
 
     val systems: LiveData<List<SolarSystem>> = liveData(provider.io) {
