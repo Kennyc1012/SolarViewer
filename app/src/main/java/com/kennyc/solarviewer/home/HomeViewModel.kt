@@ -1,61 +1,72 @@
 package com.kennyc.solarviewer.home
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.data.model.SolarSystem
 import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import com.kennyc.solarviewer.utils.MultiMediatorLiveData
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-@ExperimentalCoroutinesApi
-@FlowPreview
 class HomeViewModel @Inject constructor(
     private val provider: CoroutineDispatchProvider,
-    repo: SolarRepository,
-    clock: Clock
+    private val repo: SolarRepository,
+    private val clock: Clock
 ) : ViewModel() {
 
     val dateError = MutableLiveData<Unit>()
 
     val rateLimitError = MutableLiveData<Unit>()
 
-    private val selectedDate = BroadcastChannel<Date>(1)
+    private val selectedDate = MutableLiveData<Date>()
 
-    private val selectedSystem = BroadcastChannel<SolarSystem>(1)
+    private val selectedSystem = MutableLiveData<SolarSystem>()
 
-    val summary: LiveData<SolarSystemReport> = selectedDate.asFlow()
-        .combine(selectedSystem.asFlow()) { date, system ->
-            val start = clock.midnight(date)
-            val end = (start + TimeUnit.HOURS.toMillis(24))
-                .takeIf { !clock.isInFuture(it) }
+    val summary: LiveData<SolarSystemReport> = MultiMediatorLiveData<SolarSystemReport>().apply {
+        addSources(selectedDate, selectedSystem) { date,system ->
+            viewModelScope.launch(provider.io) {
+                try {
+                    val report = fetchReport(date,system)
+                    withContext(provider.main) {
+                        value = report
+                    }
+                } catch (e: Exception) {
+                    when (e) {
+                        is RateLimitException -> withContext(provider.main) {
+                            rateLimitError.value = Unit
+                        }
 
-            repo.getSystemReport(system, start, end)
-        }.catch {
-            when (it) {
-                is RateLimitException -> withContext(provider.main) {
-                    rateLimitError.value = Unit
-                }
-
-                else -> withContext(provider.main) {
-                    dateError.value = Unit
+                        else -> withContext(provider.main) {
+                            dateError.value = Unit
+                        }
+                    }
                 }
             }
         }
-        .asLiveData(viewModelScope.coroutineContext, Duration.ofSeconds(10))
+    }
 
-    fun setSelectedSystem(system: SolarSystem) = selectedSystem.offer(system)
+    fun setSelectedSystem(system: SolarSystem) {
+        selectedSystem.value = system
+    }
 
-    fun setSelectedDate(date: Date) = selectedDate.offer(date)
+    fun setSelectedDate(date: Date) {
+        selectedDate.value = date
+    }
+
+    private suspend fun fetchReport(date: Date, system: SolarSystem): SolarSystemReport {
+        val start = clock.midnight(date)
+        val end = (start + TimeUnit.HOURS.toMillis(24))
+            .takeIf { !clock.isInFuture(it) }
+
+        return repo.getSystemReport(system, start, end)
+    }
 }

@@ -25,7 +25,6 @@ import com.kennyc.solarviewer.databinding.FragmentDailyBinding
 import com.kennyc.solarviewer.di.components.FragmentComponent
 import com.kennyc.solarviewer.utils.asKilowattString
 import com.kennyc.view.MultiStateView
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -33,7 +32,6 @@ import javax.inject.Named
 import kotlin.math.absoluteValue
 
 
-@ExperimentalCoroutinesApi
 class DailyFragment : BindingFragment<FragmentDailyBinding>() {
 
     @Inject

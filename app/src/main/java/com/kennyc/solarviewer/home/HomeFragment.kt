@@ -69,7 +69,6 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
             viewModel.setSelectedDate(it)
         })
 
-
         binding.homeRefresh.setOnRefreshListener {
             systemsViewModel.date.value?.let { viewModel.setSelectedDate(it) }
         }

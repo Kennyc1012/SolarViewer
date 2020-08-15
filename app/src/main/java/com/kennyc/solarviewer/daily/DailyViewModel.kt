@@ -1,29 +1,21 @@
 package com.kennyc.solarviewer.daily
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.*
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
+import com.kennyc.solarviewer.utils.MultiMediatorLiveData
 import com.kennyc.solarviewer.utils.toNegative
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-
-@ExperimentalCoroutinesApi
-@FlowPreview
 class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock,
@@ -33,28 +25,35 @@ class DailyViewModel @Inject constructor(
     val dateError = MutableLiveData<Unit>()
 
     val rateLimitError = MutableLiveData<Unit>()
-    private val selectedDate = BroadcastChannel<Date>(1)
 
-    private val selectedSystem = BroadcastChannel<SolarSystem>(1)
+    private val selectedDate = MutableLiveData<Date>()
 
-    val solarData = selectedDate.asFlow()
-        .combine(selectedSystem.asFlow()) { date, system ->
-            val startTime = clock.midnight(date)
-            val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
-                .takeIf { !clock.isInFuture(it) }
+    private val selectedSystem = MutableLiveData<SolarSystem>()
 
-            val production = repo.getProductionStats(system, startTime, endDay)
-            val consumption = repo.getConsumptionStats(system, startTime, endDay)
+    val solarData: LiveData<List<SolarGraphData>> =
+        MultiMediatorLiveData<List<SolarGraphData>>().apply {
+            addSources(selectedDate, selectedSystem) { date, system ->
+                viewModelScope.launch(provider.io) {
+                    val startTime = clock.midnight(date)
+                    val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
+                        .takeIf { !clock.isInFuture(it) }
 
-            buildData(consumption, production)
-        }.catch {
-            when (it) {
-                is RateLimitException -> withContext(provider.main) { rateLimitError.value = Unit }
+                    try {
+                        val production = repo.getProductionStats(system, startTime, endDay)
+                        val consumption = repo.getConsumptionStats(system, startTime, endDay)
+                        withContext(provider.main) { value = buildData(consumption, production) }
+                    } catch (e: Exception) {
+                        when (e) {
+                            is RateLimitException -> withContext(provider.main) {
+                                rateLimitError.value = Unit
+                            }
 
-                else -> withContext(provider.main) { dateError.value = Unit }
+                            else -> withContext(provider.main) { dateError.value = Unit }
+                        }
+                    }
+                }
             }
         }
-        .asLiveData(viewModelScope.coroutineContext, Duration.ofSeconds(10))
 
     private fun buildData(
         consumed: List<ConsumptionStats>,
@@ -91,16 +90,12 @@ class DailyViewModel @Inject constructor(
         return entries
     }
 
-    fun setSelectedSystem(system: SolarSystem) = selectedSystem.offer(system)
+    fun setSelectedSystem(system: SolarSystem) {
+        selectedSystem.value = system
+    }
 
     fun setSelectedDate(date: Date) {
-        // TODO There is probably a better way to do this by limiting the dates in the picker
-        if (clock.isInFuture(date)) {
-            dateError.value = Unit
-            return
-        }
-
-        selectedDate.offer(date)
+        selectedDate.value = date
     }
 }
 
