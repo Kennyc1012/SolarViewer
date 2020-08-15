@@ -16,12 +16,6 @@
         <item name="fontFamily">@font/g_sans_medium</item>
         <item name="android:textColor">@color/white_80</item>
     </style>
-
-    <style name="InfoTextAppearance" parent="TextAppearance.AppCompat.Body2">
-        <item name="android:fontFamily">@font/g_sans</item>
-        <item name="fontFamily">@font/g_sans</item>
-    </style>
-
     <style name="Home.BottomNavigation" parent="Widget.Design.BottomNavigationView">
         <item name="itemTextAppearanceActive">@style/Home.BottomNavigation.TextAppearance.Active
         </item>

@@ -54,7 +54,7 @@ class TimedCache(private val logger: Logger, private val clock: Clock) {
         logger.i(TAG, "Inserting ${any.javaClass.simpleName} with expiration time: $expiration")
     }
 
-    fun remove(key: String): Boolean = map.remove(key) != null
+    private fun remove(key: String): Boolean = map.remove(key) != null
 }
 
 private data class TimedWrapper(val expirationTime: Long, val any: Any)

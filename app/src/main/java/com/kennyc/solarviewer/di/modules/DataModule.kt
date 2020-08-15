@@ -19,7 +19,6 @@ import dagger.Provides
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Named
 import javax.inject.Singleton
-import kotlin.coroutines.CoroutineContext
 
 @Module
 class DataModule {
@@ -50,10 +49,10 @@ class DataModule {
     @Singleton
     fun providesCoroutineDispatchProvider(): CoroutineDispatchProvider {
         return object : CoroutineDispatchProvider {
-            override val main: CoroutineContext get() = Dispatchers.Main
-            override val default: CoroutineContext get() = Dispatchers.Default
-            override val io: CoroutineContext get() = Dispatchers.IO
-            override val unconfined: CoroutineContext get() = Dispatchers.Unconfined
+            override val main = Dispatchers.Main
+            override val default = Dispatchers.Default
+            override val io = Dispatchers.IO
+            override val unconfined = Dispatchers.Unconfined
         }
     }
 

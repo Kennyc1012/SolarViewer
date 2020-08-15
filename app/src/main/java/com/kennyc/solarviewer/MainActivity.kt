@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private val formatter = SimpleDateFormat("MM-dd-yyyy", Locale.getDefault())
 
-    lateinit var date:TextView
+    private lateinit var date: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         app.component.inject(this)
 
         setContentView(R.layout.activity_main)
-        date =  findViewById<TextView>(R.id.systems_date)
+        date = findViewById(R.id.systems_date)
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
         val navHostFragment =
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.date.observe(this, Observer {
-          date.text = formatter.format(it)
+            date.text = formatter.format(it)
         })
 
         findViewById<Button>(R.id.systems_date).setOnClickListener {
