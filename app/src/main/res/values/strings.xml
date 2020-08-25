@@ -13,7 +13,7 @@
     <string name="home_stat_produced">Produced</string>
     <string name="home_stat_exported">Exported</string>
     <string name="home_stat_imported">Imported</string>
-    <string name="home_kwh_consumed">%1$s kWh\nConsumed\nas of %2$s</string>
+    <string name="home_kwh_consumed">%1$skWh\nConsumed\nas of %2$s</string>
 
     <!-- Daily Fragment -->
     <string name="daily_stat_header_both">%1$dwH produced, %2$dwH consumed at %3$s</string>
