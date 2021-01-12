@@ -59,5 +59,6 @@ dependencies {
     // MODULES
     api project(':data')
     api project(':data-enphase')
+    api project(':data-store')
     api project(':api-enphase')
 }

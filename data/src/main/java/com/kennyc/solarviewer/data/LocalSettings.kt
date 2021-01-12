@@ -1,9 +1,10 @@
 package com.kennyc.solarviewer.data
 
+import kotlinx.coroutines.flow.Flow
+
 interface LocalSettings {
 
-    fun store(key: String, value: String?)
+    fun getStoredString(key: String, defaultValue: String): Flow<String>
 
-    fun getStoredString(key: String, defaultValue: String? = null): String?
-
+    suspend fun store(key: String, value: String)
 }

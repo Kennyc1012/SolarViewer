@@ -1,3 +1,4 @@
+include ':data-store'
 rootProject.name = "SolarViewer"
 include ':app'
 include ':api-enphase'

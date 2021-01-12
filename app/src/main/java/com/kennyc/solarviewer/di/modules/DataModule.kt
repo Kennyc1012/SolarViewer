@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.ColorInt
 import com.kennyc.api_enphase.di.EnphaseComponent
 import com.kennyc.data_enphase.EnphaseSolarRepository
+import com.kennyc.data_store.PreferenceStore
 import com.kennyc.solarviewer.BuildConfig
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.Clock
@@ -12,7 +13,6 @@ import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.utils.AppClock
-import com.kennyc.solarviewer.utils.AppLocalSettings
 import com.kennyc.solarviewer.utils.AppLogger
 import dagger.Module
 import dagger.Provides
@@ -62,7 +62,7 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun providesLocalSettings(context: Context): LocalSettings = AppLocalSettings(context)
+    fun providesLocalSettings(context: Context): LocalSettings = PreferenceStore(context)
 
     @Provides
     @Singleton

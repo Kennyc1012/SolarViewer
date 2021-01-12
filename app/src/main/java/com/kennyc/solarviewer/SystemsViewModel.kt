@@ -6,13 +6,15 @@ import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.utils.MultiMediatorLiveData
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
 class SystemsViewModel @Inject constructor(
     private val localSettings: LocalSettings,
     repo: SolarRepository,
-    provider: CoroutineDispatchProvider,
+    private val provider: CoroutineDispatchProvider,
     clock: Clock
 ) : ViewModel() {
 
@@ -24,25 +26,35 @@ class SystemsViewModel @Inject constructor(
         emit(repo.getSolarSystems())
     }
 
-    val selectedSystem = MediatorLiveData<SolarSystem>().apply {
-        addSource(systems) { retrievedSystems ->
+    private val lastUsedSystemsViewModel: LiveData<String> =
+        localSettings.getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
+            .asLiveData(provider.io)
+
+    val selectedSystem = MultiMediatorLiveData<SolarSystem>().apply {
+        addSources(systems, lastUsedSystemsViewModel)
+        { sys, last ->
+            removeSource(lastUsedSystemsViewModel)
             removeSource(systems)
-            value = localSettings.getStoredString(KEY_LAST_USED_SYSTEM)
+
+            value = last
                 // Get last stored system
-                .takeIf { id -> !id.isNullOrBlank() }
+                .takeIf { id -> id != DEFAULT_VALUE }
                 ?.let { id ->
                     // Return the system with the same id
-                    retrievedSystems.firstOrNull { s ->
+                    sys.firstOrNull { s ->
                         s.id == id
                     }
                     // If not found return first item
-                } ?: retrievedSystems.first()
+                } ?: sys.first()
         }
     }
 
     fun onSystemSelected(solarSystem: SolarSystem) {
         selectedSystem.value = solarSystem
-        localSettings.store(KEY_LAST_USED_SYSTEM, solarSystem.id)
+
+        viewModelScope.launch(provider.io) {
+            localSettings.store(KEY_LAST_USED_SYSTEM, solarSystem.id)
+        }
     }
 
     fun setNewDate(newDate: Date) {
@@ -52,3 +64,4 @@ class SystemsViewModel @Inject constructor(
 }
 
 private const val KEY_LAST_USED_SYSTEM = "KEY_LAST_USED_SYSTEM"
+private const val DEFAULT_VALUE = "SystemsViewModel.NONE"
