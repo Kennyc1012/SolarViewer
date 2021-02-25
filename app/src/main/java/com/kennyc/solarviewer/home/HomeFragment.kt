@@ -13,6 +13,7 @@ import com.kennyc.solarviewer.BindingFragment
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarSystemReport
+import com.kennyc.solarviewer.data.model.exception.RateLimitException
 import com.kennyc.solarviewer.databinding.FragmentHomeBinding
 import com.kennyc.solarviewer.di.components.FragmentComponent
 import com.kennyc.solarviewer.utils.asKilowattString
@@ -43,21 +44,16 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.summary.observe(viewLifecycleOwner, Observer { report ->
-            renderDonut(report)
-            renderStats(report)
+        viewModel.summary.observe(viewLifecycleOwner, { report ->
+            if (report.isSuccess) {
+                renderDonut(report.getOrThrow())
+                renderStats(report.getOrThrow())
+            } else {
+                handleError(report.exceptionOrNull())
+            }
+
             binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
             binding.homeRefresh.isRefreshing = false
-        })
-
-        viewModel.dateError.observe(viewLifecycleOwner, Observer {
-            Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
-            binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
-
-        })
-        viewModel.rateLimitError.observe(viewLifecycleOwner, Observer {
-            Toast.makeText(requireContext(), R.string.rate_limit_error, Toast.LENGTH_SHORT).show()
-            binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
         })
 
         systemsViewModel.selectedSystem.observe(viewLifecycleOwner, Observer {
@@ -111,6 +107,21 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
             }
 
             setEnergyStat(abs(report.netEnergy).asKilowattString() + "kWh")
+        }
+    }
+
+    private fun handleError(error: Throwable?) {
+        when (error) {
+            is RateLimitException -> {
+                Toast.makeText(requireContext(), R.string.rate_limit_error, Toast.LENGTH_SHORT)
+                    .show()
+                binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
+            }
+
+            else -> {
+                Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
+                binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
+            }
         }
     }
 }

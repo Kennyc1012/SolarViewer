@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -21,6 +20,7 @@ import com.kennyc.solarviewer.BindingFragment
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarGraphData
+import com.kennyc.solarviewer.data.model.exception.RateLimitException
 import com.kennyc.solarviewer.databinding.FragmentDailyBinding
 import com.kennyc.solarviewer.di.components.FragmentComponent
 import com.kennyc.solarviewer.utils.asKilowattString
@@ -120,22 +120,20 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
             })
         }
 
-        viewModel.solarData.observe(viewLifecycleOwner, Observer { onDailyDataUpdated(it) })
-        viewModel.dateError.observe(viewLifecycleOwner, Observer {
-            Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
-            binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
-        })
-        viewModel.rateLimitError.observe(viewLifecycleOwner, Observer {
-            Toast.makeText(requireContext(), R.string.rate_limit_error, Toast.LENGTH_SHORT).show()
-            binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
+        viewModel.solarData.observe(viewLifecycleOwner, {
+            if (it.isSuccess) {
+                onDailyDataUpdated(it.getOrThrow())
+            } else {
+                handleError(it.exceptionOrNull())
+            }
         })
 
-        systemsViewModel.selectedSystem.observe(viewLifecycleOwner, Observer {
+        systemsViewModel.selectedSystem.observe(viewLifecycleOwner, {
             binding.dailyMsv.viewState = MultiStateView.ViewState.LOADING
             viewModel.setSelectedSystem(it)
         })
 
-        systemsViewModel.date.observe(viewLifecycleOwner, Observer {
+        systemsViewModel.date.observe(viewLifecycleOwner, {
             binding.dailyMsv.viewState = MultiStateView.ViewState.LOADING
             viewModel.setSelectedDate(it)
         })
@@ -178,5 +176,20 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
         }
 
         binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
+    }
+
+    private fun handleError(error: Throwable?) {
+        when (error) {
+            is RateLimitException -> {
+                Toast.makeText(requireContext(), R.string.rate_limit_error, Toast.LENGTH_SHORT)
+                    .show()
+                binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
+            }
+
+            else -> {
+                Toast.makeText(requireContext(), R.string.date_error, Toast.LENGTH_SHORT).show()
+                binding.dailyMsv.viewState = MultiStateView.ViewState.CONTENT
+            }
+        }
     }
 }

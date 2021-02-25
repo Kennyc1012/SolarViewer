@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer.daily
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
@@ -22,16 +21,11 @@ class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock
 ) : ViewModel() {
-
-    val dateError = MutableLiveData<Unit>()
-
-    val rateLimitError = MutableLiveData<Unit>()
-
     private val selectedDate = BehaviorSubject.create<Date>()
 
     private val selectedSystem = BehaviorSubject.create<SolarSystem>()
 
-    val solarData: LiveData<List<SolarGraphData>> =
+    val solarData: LiveData<Result<List<SolarGraphData>>> =
         Observable.combineLatest(selectedDate, selectedSystem, { date, system ->
             val startTime = clock.midnight(date)
             val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
@@ -45,17 +39,9 @@ class DailyViewModel @Inject constructor(
                         buildData(consumption, production)
                     })
         }.observeChain()
+            .map { Result.success(it) }
+            .onErrorReturn { Result.failure(it) }
             .asLiveData()
-
-    /*  TODO Errors
-     when (e) {
-                            is RateLimitException -> withContext(provider.main) {
-                                rateLimitError.value = Unit
-                            }
-
-                            else -> withContext(provider.main) { dateError.value = Unit }
-                        }
-    */
 
     private fun buildData(
         consumed: List<ConsumptionStats>,
