@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.kennyc.solarviewer.BindingFragment
@@ -26,7 +27,7 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
     @Inject
     lateinit var factory: ViewModelProvider.Factory
 
-    private val viewModel by activityViewModels<HomeViewModel> { factory }
+    private val viewModel by viewModels<HomeViewModel> { factory }
 
     private val systemsViewModel by activityViewModels<SystemsViewModel> { factory }
 

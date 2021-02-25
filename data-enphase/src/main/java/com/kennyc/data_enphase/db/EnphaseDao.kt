@@ -5,16 +5,18 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kennyc.data_enphase.db.model.RoomSolarSystem
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
 
 @Dao
 interface EnphaseDao {
 
     @Query("SELECT * FROM systems")
-    suspend fun getSystems(): List<RoomSolarSystem>
+    fun getSystems(): Flowable<List<RoomSolarSystem>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSystem(system: RoomSolarSystem)
+    fun insertSystem(system: RoomSolarSystem): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSystems(systems: List<RoomSolarSystem>)
+    fun insertSystems(systems: List<RoomSolarSystem>): Completable
 }

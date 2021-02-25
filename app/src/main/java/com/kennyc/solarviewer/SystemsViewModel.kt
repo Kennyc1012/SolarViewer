@@ -1,34 +1,37 @@
 package com.kennyc.solarviewer
 
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.data.rx.CompletableSubscriber
 import com.kennyc.solarviewer.utils.MultiMediatorLiveData
-import kotlinx.coroutines.launch
+import com.kennyc.solarviewer.utils.RxUtils.asLiveData
+import com.kennyc.solarviewer.utils.RxUtils.observeChain
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.util.*
 import javax.inject.Inject
 
 class SystemsViewModel @Inject constructor(
     private val localSettings: LocalSettings,
     repo: SolarRepository,
-    private val provider: CoroutineDispatchProvider,
     clock: Clock
 ) : ViewModel() {
 
-    val date: LiveData<Date> = liveData(provider.main) {
-        emit(clock.currentDate())
-    }
+    private val dateSubject = BehaviorSubject.create<Date>()
+    val date: LiveData<Date> = dateSubject.asLiveData()
 
-    val systems: LiveData<List<SolarSystem>> = liveData(provider.io) {
-        emit(repo.getSolarSystems())
-    }
+    val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
+        .observeChain()
+        .asLiveData()
 
     private val lastUsedSystemsViewModel: LiveData<String> =
         localSettings.getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
-            .asLiveData(provider.io)
+            .observeChain()
+            .asLiveData()
 
     val selectedSystem = MultiMediatorLiveData<SolarSystem>().apply {
         addSources(systems, lastUsedSystemsViewModel)
@@ -49,17 +52,20 @@ class SystemsViewModel @Inject constructor(
         }
     }
 
+    init {
+        dateSubject.onNext(clock.currentDate())
+    }
+
     fun onSystemSelected(solarSystem: SolarSystem) {
         selectedSystem.value = solarSystem
 
-        viewModelScope.launch(provider.io) {
-            localSettings.store(KEY_LAST_USED_SYSTEM, solarSystem.id)
-        }
+        localSettings.store(KEY_LAST_USED_SYSTEM, solarSystem.id)
+            .observeChain()
+            .subscribe(CompletableSubscriber.stub())
     }
 
     fun setNewDate(newDate: Date) {
-        date as MutableLiveData<Date>
-        date.value = newDate
+        dateSubject.onNext(newDate)
     }
 }
 

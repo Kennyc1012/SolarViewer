@@ -11,12 +11,10 @@ import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.CoroutineDispatchProvider
 import com.kennyc.solarviewer.utils.AppClock
 import com.kennyc.solarviewer.utils.AppLogger
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -44,17 +42,6 @@ class DataModule {
         logger: Logger,
         clock: Clock
     ): SolarRepository = EnphaseSolarRepository(context, clock, component.api(), logger)
-
-    @Provides
-    @Singleton
-    fun providesCoroutineDispatchProvider(): CoroutineDispatchProvider {
-        return object : CoroutineDispatchProvider {
-            override val main = Dispatchers.Main
-            override val default = Dispatchers.Default
-            override val io = Dispatchers.IO
-            override val unconfined = Dispatchers.Unconfined
-        }
-    }
 
     @Provides
     @Singleton

@@ -1,10 +1,12 @@
 package com.kennyc.solarviewer.data
 
-import kotlinx.coroutines.flow.Flow
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Single
+
 
 interface LocalSettings {
 
-    fun getStoredString(key: String, defaultValue: String): Flow<String>
+    fun getStoredString(key: String, defaultValue: String): Single<String>
 
-    suspend fun store(key: String, value: String)
+    fun store(key: String, value: String): Completable
 }

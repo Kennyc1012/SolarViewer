@@ -3,57 +3,59 @@ package com.kennyc.solarviewer.daily
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.*
-import com.kennyc.solarviewer.data.model.exception.RateLimitException
-import com.kennyc.solarviewer.utils.MultiMediatorLiveData
+import com.kennyc.solarviewer.data.model.ConsumptionStats
+import com.kennyc.solarviewer.data.model.ProductionStats
+import com.kennyc.solarviewer.data.model.SolarGraphData
+import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.utils.RxUtils.asLiveData
+import com.kennyc.solarviewer.utils.RxUtils.observeChain
 import com.kennyc.solarviewer.utils.toNegative
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
-    private val clock: Clock,
-    private val provider: CoroutineDispatchProvider
+    private val clock: Clock
 ) : ViewModel() {
 
     val dateError = MutableLiveData<Unit>()
 
     val rateLimitError = MutableLiveData<Unit>()
 
-    private val selectedDate = MutableLiveData<Date>()
+    private val selectedDate = BehaviorSubject.create<Date>()
 
-    private val selectedSystem = MutableLiveData<SolarSystem>()
+    private val selectedSystem = BehaviorSubject.create<SolarSystem>()
 
     val solarData: LiveData<List<SolarGraphData>> =
-        MultiMediatorLiveData<List<SolarGraphData>>().apply {
-            addSources(selectedDate, selectedSystem) { date, system ->
-                viewModelScope.launch(provider.io) {
-                    val startTime = clock.midnight(date)
-                    val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
-                        .takeIf { !clock.isInFuture(it) }
+        Observable.combineLatest(selectedDate, selectedSystem, { date, system ->
+            val startTime = clock.midnight(date)
+            val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
+                .takeIf { !clock.isInFuture(it) }
 
-                    try {
-                        val production = repo.getProductionStats(system, startTime, endDay)
-                        val consumption = repo.getConsumptionStats(system, startTime, endDay)
-                        withContext(provider.main) { value = buildData(consumption, production) }
-                    } catch (e: Exception) {
-                        when (e) {
+            Triple(system, startTime, endDay)
+        }).flatMapSingle {
+            repo.getProductionStats(it.first, it.second, it.third)
+                .zipWith(repo.getConsumptionStats(it.first, it.second, it.third),
+                    { production, consumption ->
+                        buildData(consumption, production)
+                    })
+        }.observeChain()
+            .asLiveData()
+
+    /*  TODO Errors
+     when (e) {
                             is RateLimitException -> withContext(provider.main) {
                                 rateLimitError.value = Unit
                             }
 
                             else -> withContext(provider.main) { dateError.value = Unit }
                         }
-                    }
-                }
-            }
-        }
+    */
 
     private fun buildData(
         consumed: List<ConsumptionStats>,
@@ -91,11 +93,11 @@ class DailyViewModel @Inject constructor(
     }
 
     fun setSelectedSystem(system: SolarSystem) {
-        selectedSystem.value = system
+        selectedSystem.onNext(system)
     }
 
     fun setSelectedDate(date: Date) {
-        selectedDate.value = date
+        selectedDate.onNext(date)
     }
 }
 
