@@ -8,7 +8,7 @@
     <!-- HomeFragment -->
     <string name="home_stat_title_solar">Solar</string>
     <string name="home_stat_title_net">Net Energy</string>
-    <string name="home_stat_title_usage">Energy Usage</string>
+    <string name="home_stat_title_usage">Grid Usage</string>
     <string name="home_stat_title_exported">Excess Energy</string>
     <string name="home_stat_produced">Produced</string>
     <string name="home_stat_exported">Exported</string>
