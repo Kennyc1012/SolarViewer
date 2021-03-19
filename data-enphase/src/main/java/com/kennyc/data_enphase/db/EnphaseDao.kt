@@ -15,8 +15,5 @@ interface EnphaseDao {
     fun getSystems(): Flowable<List<RoomSolarSystem>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSystem(system: RoomSolarSystem): Completable
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertSystems(systems: List<RoomSolarSystem>): Completable
 }

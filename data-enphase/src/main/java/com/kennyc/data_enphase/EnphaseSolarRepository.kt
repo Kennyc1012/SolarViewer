@@ -46,10 +46,12 @@ class EnphaseSolarRepository(
     override fun getSolarSystems(): Flowable<List<SolarSystem>> {
         // TODO force refresh of systems manually and based on time
         return dao.getSystems()
-            .doOnNext {
+            .flatMap {
                 if (it.isNullOrEmpty()) {
                     logger.v(TAG, "No items present, fetching from API")
                     fetchSystems()
+                } else {
+                    Flowable.just(it)
                 }
             }
             .map { it.map { system -> SolarSystem(system.id, system.name, SystemStatus.NORMAL) } }
@@ -214,17 +216,20 @@ class EnphaseSolarRepository(
         return exception
     }
 
-    private fun fetchSystems() {
-        api.getSystems()
+    private fun fetchSystems(): Flowable<List<RoomSolarSystem>> {
+        return api.getSystems()
             .subscribeOn(Schedulers.io())
-            .flatMapCompletable { response ->
+            .map { response ->
                 val apiSystems = response.systems
                     .map { SolarSystem(it.id, it.name, toSystemStatus(it.status)) }
 
                 val currentTime = System.currentTimeMillis()
-                val toInsert =
-                    apiSystems.map { RoomSolarSystem(it.id, it.name, currentTime, it.status) }
-                dao.insertSystems(toInsert)
-            }.subscribe(CompletableSubscriber.stub())
+                apiSystems.map { RoomSolarSystem(it.id, it.name, currentTime, it.status) }
+            }.toFlowable()
+            .doOnNext {
+                dao.insertSystems(it)
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(CompletableSubscriber.stub())
+            }
     }
 }
