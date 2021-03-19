@@ -20,7 +20,7 @@
             android:layout_gravity="top"
             android:fontFamily="@font/g_sans"
             android:textColor="@color/white_80"
-            android:textSize="16sp"
+            android:textSize="@dimen/stat_card_title"
             tools:drawableEnd="@drawable/ic_wb_sunny_24"
             tools:text="Solar" />
 
@@ -31,7 +31,7 @@
             android:layout_gravity="center|start"
             android:fontFamily="@font/g_sans_medium"
             android:textColor="@color/white_80"
-            android:textSize="20sp"
+            android:textSize="@dimen/stat_card_energy"
             tools:text="10kWh" />
 
         <androidx.appcompat.widget.AppCompatTextView
@@ -41,7 +41,7 @@
             android:layout_gravity="bottom"
             android:fontFamily="@font/g_sans"
             android:textColor="@color/white_80"
-            android:textSize="12sp"
+            android:textSize="@dimen/stat_card_footer"
             tools:text="@string/home_stat_produced" />
     </FrameLayout>
 </merge>

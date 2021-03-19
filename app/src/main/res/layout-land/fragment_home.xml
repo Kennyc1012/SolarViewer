@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.kennyc.view.MultiStateView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_msv"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:msv_loadingView="@layout/loading_view"
+    app:msv_viewState="loading"
+    tools:msv_viewState="content">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/home_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.kennyc.solarviewer.ui.DonutView
+                android:id="@+id/home_donut_chart"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_default="percent"
+                app:layout_constraintWidth_percent=".5" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/home_donut_chart"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/home_vertical_guideline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent=".5"
+                    app:layout_constraintStart_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <com.kennyc.solarviewer.ui.StatsCard
+                    android:id="@+id/home_produced_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/color_production"
+                    app:cardCornerRadius="10dp"
+                    app:layout_constraintEnd_toStartOf="@id/home_vertical_guideline"
+                    app:layout_constraintHeight_percent=".45"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:stat_footer="@string/home_stat_produced"
+                    app:stat_icon="@drawable/ic_wb_sunny_24"
+                    app:stat_title="@string/home_stat_title_solar" />
+
+                <com.kennyc.solarviewer.ui.StatsCard
+                    android:id="@+id/home_exported_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/color_export"
+                    app:cardCornerRadius="10dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent=".45"
+                    app:layout_constraintStart_toEndOf="@id/home_vertical_guideline"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:stat_footer="@string/home_stat_exported"
+                    app:stat_icon="@drawable/ic_export_power_24"
+                    app:stat_title="@string/home_stat_title_exported" />
+
+                <com.kennyc.solarviewer.ui.StatsCard
+                    android:id="@+id/home_imported_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/color_consumption"
+                    app:cardCornerRadius="10dp"
+                    app:layout_constraintEnd_toStartOf="@id/home_vertical_guideline"
+                    app:layout_constraintHeight_percent=".45"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/home_produced_stats"
+                    app:stat_footer="@string/home_stat_imported"
+                    app:stat_icon="@drawable/ic_flash_on_24"
+                    app:stat_title="@string/home_stat_title_usage" />
+
+                <com.kennyc.solarviewer.ui.StatsCard
+                    android:id="@+id/home_net_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="8dp"
+                    app:cardBackgroundColor="@color/grey_800"
+                    app:cardCornerRadius="10dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent=".45"
+                    app:layout_constraintStart_toEndOf="@id/home_vertical_guideline"
+                    app:layout_constraintTop_toBottomOf="@id/home_produced_stats"
+                    app:stat_title="@string/home_stat_title_net"
+                    tools:stat_footer="@string/home_stat_imported"
+                    tools:stat_icon="@drawable/arrow_bottom_left" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</com.kennyc.view.MultiStateView>
