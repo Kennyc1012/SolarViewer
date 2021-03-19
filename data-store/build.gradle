@@ -33,9 +33,9 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "androidx.datastore:datastore:1.0.0-alpha07"
-    implementation "androidx.datastore:datastore-core:1.0.0-alpha07"
-    implementation "androidx.datastore:datastore-preferences:1.0.0-alpha07"
-    implementation "androidx.datastore:datastore-preferences-rxjava3:1.0.0-alpha07"
+    implementation "androidx.datastore:datastore:1.0.0-alpha08"
+    implementation "androidx.datastore:datastore-core:1.0.0-alpha08"
+    implementation "androidx.datastore:datastore-preferences:1.0.0-alpha08"
+    implementation "androidx.datastore:datastore-preferences-rxjava3:1.0.0-alpha08"
     api project(':data')
 }
