@@ -2,7 +2,7 @@
 buildscript {
     ext.kotlin_version = "1.4.31"
     ext.dagger = '2.28.3'
-    ext.nav_version = '2.3.4'
+    ext.nav_version = '2.3.5'
     ext.target_sdk = 30
     ext.min_sdk = 26
     ext.rx = "3.0.11"
