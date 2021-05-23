@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion target_sdk
+    compileSdkVersion compile_sdk
 
     buildFeatures {
         viewBinding = true
