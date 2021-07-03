@@ -22,7 +22,7 @@ class PreferenceStore(context: Context) : LocalSettings {
             val prefs = it.toMutablePreferences()
             prefs[stringPreferencesKey(key)] = value
             Single.just(prefs)
-        }.flatMapCompletable { Completable.complete() }
+        }.ignoreElement()
             .onErrorComplete()
     }
 
