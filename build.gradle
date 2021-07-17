@@ -3,10 +3,10 @@ buildscript {
     ext.kotlin_version = "1.5.20"
     ext.dagger = '2.35.1'
     ext.nav_version = '2.3.5'
-    ext.target_sdk = 'S'
+    ext.target_sdk = 31
     ext.min_sdk = 26
     ext.rx = "3.0.11"
-    ext.compile_sdk = "android-S"
+    ext.compile_sdk = 31
 
     repositories {
         google()
