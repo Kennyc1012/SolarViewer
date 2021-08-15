@@ -34,10 +34,10 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "com.squareup.okhttp3:okhttp:4.8.1"
+    implementation "com.squareup.okhttp3:okhttp:4.9.1"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.8.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.1'
     implementation "io.reactivex.rxjava3:rxjava:$rx"
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
 
