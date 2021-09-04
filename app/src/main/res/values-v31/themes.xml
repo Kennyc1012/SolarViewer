@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <style name="Theme.SolarViewer" parent="Theme.SolarViewer.Base">
-        <item name="android:windowSplashScreenBackground">@color/purple_500</item>
-    </style>
-
-</resources>
