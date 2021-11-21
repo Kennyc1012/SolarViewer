@@ -34,11 +34,11 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "androidx.room:room-runtime:2.4.0-beta01"
-    implementation "androidx.room:room-ktx:2.4.0-beta01"
+    implementation "androidx.room:room-runtime:2.4.0-beta02"
+    implementation "androidx.room:room-ktx:2.4.0-beta02"
     implementation "io.reactivex.rxjava3:rxjava:$rx"
-    implementation "androidx.room:room-rxjava3:2.4.0-beta01"
-    kapt "androidx.room:room-compiler:2.4.0-beta01"
+    implementation "androidx.room:room-rxjava3:2.4.0-beta02"
+    kapt "androidx.room:room-compiler:2.4.0-beta02"
 
     api project(":api-enphase")
     api project(':data')
