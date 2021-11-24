@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -21,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kennyc.solarviewer.R
+import com.kennyc.solarviewer.ui.*
 
 //region StatCard
 @Composable
@@ -47,7 +47,7 @@ fun StatCard(
                 fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
                 fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.Medium,
-                color = colorResource(id = R.color.white_80)
+                color = White_80
             )
 
             Text(
@@ -57,7 +57,7 @@ fun StatCard(
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                 fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
                 fontFamily = FontFamily.SansSerif,
-                color = colorResource(id = R.color.white_80)
+                color = White_80
             )
         }
 
@@ -77,7 +77,7 @@ fun StatTitle(title: String, @DrawableRes icon: Int) {
             text = title,
             fontSize = dimensionResource(id = R.dimen.stat_card_title).value.sp,
             fontFamily = FontFamily.SansSerif,
-            color = colorResource(id = R.color.white_80)
+            color = White_80
         )
 
         Image(painter = painterResource(id = icon), null)
@@ -94,7 +94,7 @@ fun StatGrid(modifier: Modifier = Modifier) {
                 energy = "44.64kWh",
                 footer = "Produce",
                 icon = R.drawable.ic_wb_sunny_24,
-                color = Color.Green,
+                color = Production,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
@@ -104,7 +104,7 @@ fun StatGrid(modifier: Modifier = Modifier) {
                 energy = "23.66kWh",
                 footer = "Exported",
                 icon = R.drawable.ic_export_power_24,
-                color = Color.Blue,
+                color = Blue_800,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
@@ -117,7 +117,7 @@ fun StatGrid(modifier: Modifier = Modifier) {
                 energy = "12.53kWh",
                 footer = "Imported",
                 icon = R.drawable.ic_flash_on_24,
-                color = Color.Yellow,
+                color = Consumption,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
@@ -127,7 +127,7 @@ fun StatGrid(modifier: Modifier = Modifier) {
                 energy = "11.14kWh",
                 footer = "Produced",
                 icon = R.drawable.ic_arrow_top_right_24,
-                color = Color.Gray,
+                color = GRAY_800,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
@@ -140,7 +140,7 @@ fun StatGrid(modifier: Modifier = Modifier) {
 @Composable
 fun PreviewStatCard() {
     StatCard(
-        "Solar", "10kWh", "Produced", R.drawable.ic_wb_sunny_24, Color.Red,
+        "Solar", "10kWh", "Produced", R.drawable.ic_wb_sunny_24, Production,
     )
 }
 //endregion
@@ -168,7 +168,7 @@ fun EnergyPiChart(
 fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
     CircularProgressIndicator(
         progress = 1f,
-        color = colorResource(id = R.color.color_consumption),
+        color = Consumption,
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
@@ -176,7 +176,7 @@ fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
 
     CircularProgressIndicator(
         progress = solarEnergyPercentage,
-        color = colorResource(id = R.color.color_production),
+        color = Production,
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
