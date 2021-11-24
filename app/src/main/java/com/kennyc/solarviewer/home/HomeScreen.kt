@@ -20,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import com.kennyc.solarviewer.R
 
 //region StatCard
@@ -30,14 +29,13 @@ fun StatCard(
     energy: String,
     footer: String,
     @DrawableRes icon: Int,
-    color: Color
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
     Card(
         shape = RoundedCornerShape(10.dp),
         backgroundColor = color,
-        modifier = Modifier
-            .width(200.dp)
-            .height(200.dp)
+        modifier = modifier.fillMaxHeight()
     ) {
         Box() {
             StatTitle(title, icon)
@@ -68,39 +66,82 @@ fun StatCard(
 
 @Composable
 fun StatTitle(title: String, @DrawableRes icon: Int) {
-    ConstraintLayout(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp)
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        val (titleRef, iconRef) = createRefs()
-
         Text(
             text = title,
-            modifier = Modifier.constrainAs(titleRef) {
-                linkTo(parent.start, iconRef.end, bias = 0f)
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-            },
             fontSize = dimensionResource(id = R.dimen.stat_card_title).value.sp,
             fontFamily = FontFamily.SansSerif,
             color = colorResource(id = R.color.white_80)
         )
 
-        Image(painter = painterResource(id = icon), null,
-            modifier = Modifier.constrainAs(iconRef) {
-                end.linkTo(parent.end)
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-            })
+        Image(painter = painterResource(id = icon), null)
+    }
+}
+
+@Preview
+@Composable
+fun StatGrid(modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Row(modifier = Modifier.weight(1f)) {
+            StatCard(
+                title = "Solar",
+                energy = "44.64kWh",
+                footer = "Produce",
+                icon = R.drawable.ic_wb_sunny_24,
+                color = Color.Green,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
+            )
+            StatCard(
+                title = "Excess Energy",
+                energy = "23.66kWh",
+                footer = "Exported",
+                icon = R.drawable.ic_export_power_24,
+                color = Color.Blue,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
+            )
+        }
+
+        Row(modifier = Modifier.weight(1f)) {
+            StatCard(
+                title = "Energy Usage",
+                energy = "12.53kWh",
+                footer = "Imported",
+                icon = R.drawable.ic_flash_on_24,
+                color = Color.Yellow,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
+            )
+            StatCard(
+                title = "Net Energy",
+                energy = "11.14kWh",
+                footer = "Produced",
+                icon = R.drawable.ic_arrow_top_right_24,
+                color = Color.Gray,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 fun PreviewStatCard() {
-    StatCard("Solar", "10kWh", "Produced", R.drawable.ic_wb_sunny_24, Color.Red)
+    StatCard(
+        "Solar", "10kWh", "Produced", R.drawable.ic_wb_sunny_24, Color.Red,
+    )
 }
 //endregion
 
@@ -108,9 +149,10 @@ fun PreviewStatCard() {
 @Composable
 fun EnergyPiChart(
     @FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float,
-    consumedEnergy: String
+    consumedEnergy: String,
+    modifier: Modifier = Modifier
 ) {
-    Box {
+    Box(modifier = modifier.padding(16.dp)) {
         Donut(solarEnergyPercentage)
         Text(
             text = consumedEnergy,
@@ -127,13 +169,17 @@ fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
     CircularProgressIndicator(
         progress = 1f,
         color = colorResource(id = R.color.color_consumption),
-        modifier = Modifier.height(250.dp).width(250.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
     )
 
     CircularProgressIndicator(
         progress = solarEnergyPercentage,
         color = colorResource(id = R.color.color_production),
-        modifier = Modifier.height(250.dp).width(250.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
     )
 }
 
@@ -143,3 +189,18 @@ fun PreviewDonut() {
     EnergyPiChart(.75f, "12.76 kWh")
 }
 //endregion
+
+@Preview
+@Composable
+fun PreviewHomeScreen() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        EnergyPiChart(
+            solarEnergyPercentage = .75f, "33.5Wh",
+            modifier = Modifier.weight(1f)
+        )
+        StatGrid(modifier = Modifier.weight(1f))
+    }
+}
