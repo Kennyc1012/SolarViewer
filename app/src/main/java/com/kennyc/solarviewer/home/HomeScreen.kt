@@ -2,16 +2,16 @@ package com.kennyc.solarviewer.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.ui.*
+
 
 //region StatCard
 @Composable
@@ -32,36 +33,41 @@ fun StatCard(
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    /*Card(
         shape = RoundedCornerShape(10.dp),
         backgroundColor = color,
         modifier = modifier.fillMaxHeight()
-    ) {
-        Box() {
-            StatTitle(title, icon)
-            Text(
-                text = energy,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 8.dp, end = 8.dp),
-                fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Medium,
-                color = White_80
-            )
+    ) {*/
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .background(color)
+    )
+    {
+        StatTitle(title, icon)
+        Text(
+            text = energy,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 8.dp, end = 8.dp),
+            fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Medium,
+            color = White_80
+        )
 
-            Text(
-                text = footer,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
-                fontFamily = FontFamily.SansSerif,
-                color = White_80
-            )
-        }
-
+        Text(
+            text = footer,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+            fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
+            fontFamily = FontFamily.SansSerif,
+            color = White_80
+        )
     }
+
+    //}
 }
 
 @Composable
@@ -166,21 +172,16 @@ fun EnergyPiChart(
 
 @Composable
 fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
-    CircularProgressIndicator(
-        progress = 1f,
-        color = Consumption,
+    Canvas(
         modifier = Modifier
-            .fillMaxWidth()
             .fillMaxHeight()
-    )
-
-    CircularProgressIndicator(
-        progress = solarEnergyPercentage,
-        color = Production,
-        modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight()
-    )
+    ) {
+        val stroke = Stroke(50f)
+        val sweep = 360f * solarEnergyPercentage
+        drawArc(Consumption,0f,360f,false, style = stroke)
+        drawArc(Production, 270f,sweep,false, style = stroke)
+    }
 }
 
 @Preview
