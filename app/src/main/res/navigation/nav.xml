@@ -11,4 +11,5 @@
     <fragment
         android:id="@+id/tab_daily"
         android:name="com.kennyc.solarviewer.daily.DailyFragment" />
+
 </navigation>
