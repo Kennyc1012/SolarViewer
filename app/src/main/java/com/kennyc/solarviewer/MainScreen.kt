@@ -8,12 +8,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.kennyc.solarviewer.home.PreviewHomeScreen
 import com.kennyc.solarviewer.ui.NavTab
 
 //region MainScreen
@@ -22,9 +29,20 @@ import com.kennyc.solarviewer.ui.NavTab
 @Composable
 fun MainScreen() {
     // TODO Values
+    val navController = rememberNavController()
     Scaffold(topBar = { TopBar(listOf("System Name"), 0, "11/23/2021") },
-        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily)) }) {
+        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
 
+        NavHost(navController = navController, startDestination = NavTab.Home.route) {
+            // TODO Correct screens
+            composable(NavTab.Home.route) {
+                PreviewHomeScreen()
+            }
+
+            composable(NavTab.Daily.route) {
+                PreviewHomeScreen()
+            }
+        }
     }
 }
 
@@ -33,9 +51,7 @@ fun MainScreen() {
 @ExperimentalMaterial3Api
 @Composable
 fun PreviewMainScreen() {
-    Scaffold(topBar = { PreviewTopBar() },
-        bottomBar = { PreviewBottomBar() }) {
-    }
+    MainScreen()
 }
 //endregion
 
@@ -75,25 +91,32 @@ fun PreviewTopBar() {
 
 //region BottomBar
 @Composable
-fun BottomBar(tabs: List<NavTab>) {
+fun BottomBar(tabs: List<NavTab>, navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentTab = navBackStackEntry?.destination?.route
+
     NavigationBar {
-        tabs.forEach {
+        tabs.forEach { tab ->
             NavigationBarItem(
                 icon = {
-                    Icon(painter = painterResource(id = it.icon), null)
+                    Icon(painter = painterResource(id = tab.icon), null)
                 },
-                label = { Text(stringResource(id = it.title)) },
+                label = { Text(stringResource(id = tab.title)) },
                 alwaysShowLabel = true,
-                selected = false,
-                onClick = { /*TODO*/ }
+                selected = currentTab == tab.route,
+                onClick = {
+                    navController.navigate(tab.route) {
+                        navController.graph.startDestinationRoute?.let { route ->
+                            popUpTo(route) {
+                                saveState = true
+                            }
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewBottomBar() {
-    BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily))
 }
 //endregion
