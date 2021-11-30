@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.kennyc.solarviewer.MainActivity
+import com.kennyc.solarviewer.MainActivityCompose
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.di.modules.DataModule
 import com.kennyc.solarviewer.di.modules.ViewModelFactoryModule
@@ -21,6 +22,10 @@ interface AppComponent {
     fun logger(): Logger
 
     fun inject(activity: MainActivity)
+
+    @ExperimentalMaterial3Api
+    @ExperimentalComposeUiApi
+    fun inject(activity: MainActivityCompose)
 
     @Component.Builder
     interface Builder {

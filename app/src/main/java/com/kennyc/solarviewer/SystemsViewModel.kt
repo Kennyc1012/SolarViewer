@@ -24,7 +24,7 @@ class SystemsViewModel @Inject constructor(
     private val dateSubject = BehaviorSubject.create<Date>()
     val date: LiveData<Date> = dateSubject.asLiveData()
 
-    val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
+    private val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
         .observeChain()
         .asLiveData()
 

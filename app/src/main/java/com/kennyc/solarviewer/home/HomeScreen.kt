@@ -8,36 +8,39 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kennyc.solarviewer.R
+import com.kennyc.solarviewer.SystemsViewModel
+import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
+import com.kennyc.solarviewer.utils.asKilowattString
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.abs
 
 
 //region StatCard
 @Composable
 fun StatCard(
     title: String,
-    energy: String,
+    energy: Int,
     footer: String,
     @DrawableRes icon: Int,
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    /*Card(
-        shape = RoundedCornerShape(10.dp),
-        backgroundColor = color,
-        modifier = modifier.fillMaxHeight()
-    ) {*/
     Box(
         modifier = modifier
             .fillMaxHeight()
@@ -46,7 +49,7 @@ fun StatCard(
     {
         StatTitle(title, icon)
         Text(
-            text = energy,
+            text = energy.asKilowattString() + "kWh",
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 8.dp, end = 8.dp),
@@ -66,8 +69,6 @@ fun StatCard(
             color = White_80
         )
     }
-
-    //}
 }
 
 @Composable
@@ -90,15 +91,14 @@ fun StatTitle(title: String, @DrawableRes icon: Int) {
     }
 }
 
-@Preview
 @Composable
-fun StatGrid(modifier: Modifier = Modifier) {
+private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Row(modifier = Modifier.weight(1f)) {
             StatCard(
-                title = "Solar",
-                energy = "44.64kWh",
-                footer = "Produce",
+                title = stringResource(id = R.string.home_stat_title_solar),
+                energy = report.productionInWatts,
+                footer = stringResource(id = R.string.home_stat_produced),
                 icon = R.drawable.ic_wb_sunny_24,
                 color = Production,
                 modifier = Modifier
@@ -106,9 +106,9 @@ fun StatGrid(modifier: Modifier = Modifier) {
                     .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
             )
             StatCard(
-                title = "Excess Energy",
-                energy = "23.66kWh",
-                footer = "Exported",
+                title = stringResource(id = R.string.home_stat_title_exported),
+                energy = report.exportedInWatts,
+                footer = stringResource(id = R.string.home_stat_exported),
                 icon = R.drawable.ic_export_power_24,
                 color = Blue_800,
                 modifier = Modifier
@@ -119,20 +119,39 @@ fun StatGrid(modifier: Modifier = Modifier) {
 
         Row(modifier = Modifier.weight(1f)) {
             StatCard(
-                title = "Energy Usage",
-                energy = "12.53kWh",
-                footer = "Imported",
+                title = stringResource(id = R.string.home_stat_title_usage),
+                energy = report.importedInWatts,
+                footer = stringResource(id = R.string.home_stat_imported),
                 icon = R.drawable.ic_flash_on_24,
                 color = Consumption,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
             )
+
+            val icon = when (report.isNetPositive) {
+                true -> {
+                    R.drawable.ic_arrow_top_right_24
+                }
+                else -> {
+                    R.drawable.ic_arrow_bottom_left_24
+                }
+            }
+
+            val footer = when (report.isNetPositive) {
+                true -> {
+                    R.string.home_stat_produced
+                }
+                else -> {
+                    R.string.home_stat_imported
+                }
+            }
+
             StatCard(
-                title = "Net Energy",
-                energy = "11.14kWh",
-                footer = "Produced",
-                icon = R.drawable.ic_arrow_top_right_24,
+                title = stringResource(id = R.string.home_stat_title_net),
+                energy = abs(report.netEnergy),
+                footer = stringResource(id = footer),
+                icon = icon,
                 color = GRAY_800,
                 modifier = Modifier
                     .weight(1f)
@@ -141,25 +160,31 @@ fun StatGrid(modifier: Modifier = Modifier) {
         }
     }
 }
-
-@Preview
-@Composable
-fun PreviewStatCard() {
-    StatCard(
-        "Solar", "10kWh", "Produced", R.drawable.ic_wb_sunny_24, Production,
-    )
-}
 //endregion
 
 //region Donut
 @Composable
 fun EnergyPiChart(
-    @FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float,
-    consumedEnergy: String,
+    report: SolarSystemReport,
     modifier: Modifier = Modifier
 ) {
+    val max = report.consumptionInWatts
+    val slice = report.productionInWatts - report.exportedInWatts
+    val percentage = slice.toFloat() / max.toFloat()
+
+    val time = SimpleDateFormat(
+        "h:mma",
+        Locale.getDefault()
+    ).format(report.lastReported)
+
+    val consumedEnergy = stringResource(
+        R.string.home_kwh_consumed,
+        report.consumptionInWatts.asKilowattString(),
+        time
+    )
+
     Box(modifier = modifier.padding(16.dp)) {
-        Donut(solarEnergyPercentage)
+        Donut(percentage)
         Text(
             text = consumedEnergy,
             modifier = Modifier.align(Alignment.Center),
@@ -172,36 +197,49 @@ fun EnergyPiChart(
 
 @Composable
 fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
-    Canvas(
+    Box(
         modifier = Modifier
-            .fillMaxHeight()
             .fillMaxWidth()
+            .fillMaxHeight()
     ) {
-        val stroke = Stroke(50f)
-        val sweep = 360f * solarEnergyPercentage
-        drawArc(Consumption,0f,360f,false, style = stroke)
-        drawArc(Production, 270f,sweep,false, style = stroke)
+        Canvas(
+            modifier = Modifier
+                .height(225.dp)
+                .width(225.dp)
+                .align(Alignment.Center)
+        ) {
+            val stroke = Stroke(50f)
+            val sweep = 360f * solarEnergyPercentage
+            drawArc(Consumption, 0f, 360f, false, style = stroke)
+            drawArc(Production, 270f, sweep, false, style = stroke)
+        }
     }
-}
 
-@Preview
-@Composable
-fun PreviewDonut() {
-    EnergyPiChart(.75f, "12.76 kWh")
 }
 //endregion
 
-@Preview
 @Composable
-fun PreviewHomeScreen() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        EnergyPiChart(
-            solarEnergyPercentage = .75f, "33.5Wh",
-            modifier = Modifier.weight(1f)
-        )
-        StatGrid(modifier = Modifier.weight(1f))
+fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
+    val summary by viewModel.summary.observeAsState()
+    summary?.let {
+        if (it.isSuccess) {
+            val report = it.getOrThrow()
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                EnergyPiChart(
+                    report,
+                    modifier = Modifier.weight(1f)
+                )
+                StatGrid(report = report, modifier = Modifier.weight(1f))
+            }
+        }
     }
+
+
+    val system by systemsViewModel.selectedSystem.observeAsState()
+    system?.let { viewModel.setSelectedSystem(it) }
+    val date by systemsViewModel.date.observeAsState()
+    date?.let { viewModel.setSelectedDate(it) }
 }

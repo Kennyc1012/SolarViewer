@@ -15,43 +15,51 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.kennyc.solarviewer.home.PreviewHomeScreen
+import com.kennyc.solarviewer.home.HomeScreen
+import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
 
 //region MainScreen
 @ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    viewModelFactory: ViewModelProvider.Factory? = null,
+    viewModel: SystemsViewModel
+) {
     // TODO Values
     val navController = rememberNavController()
+    viewModel(modelClass = HomeViewModel::class.java, factory = viewModelFactory)
     Scaffold(topBar = { TopBar(listOf("System Name"), 0, "11/23/2021") },
         bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
 
-        NavHost(navController = navController, startDestination = NavTab.Home.route) {
+        NavHost(
+            navController = navController,
+            startDestination = NavTab.Home.route,
+            modifier = Modifier.padding(it)
+        ) {
             // TODO Correct screens
             composable(NavTab.Home.route) {
-                PreviewHomeScreen()
+                HomeScreen(
+                    viewModel = viewModel(
+                        modelClass = HomeViewModel::class.java,
+                        factory = viewModelFactory
+                    ), viewModel
+                )
             }
 
             composable(NavTab.Daily.route) {
-                PreviewHomeScreen()
+                // PreviewHomeScreen()
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@ExperimentalComposeUiApi
-@ExperimentalMaterial3Api
-@Composable
-fun PreviewMainScreen() {
-    MainScreen()
 }
 //endregion
 
