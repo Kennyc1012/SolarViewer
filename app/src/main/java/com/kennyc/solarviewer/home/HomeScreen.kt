@@ -298,8 +298,7 @@ fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
 
         is ErrorState -> {
             Error(safeState.error) {
-                // TODO Better date handling
-                viewModel.setSelectedDate(Date())
+                viewModel.refresh()
             }
         }
 

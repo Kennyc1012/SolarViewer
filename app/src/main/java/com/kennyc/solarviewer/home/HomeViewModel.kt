@@ -47,4 +47,8 @@ class HomeViewModel @Inject constructor(
     fun setSelectedDate(date: Date) {
         selectedDate.onNext(date)
     }
+
+    fun refresh(date: Date? = null) {
+        setSelectedDate(date ?: clock.currentDate())
+    }
 }
