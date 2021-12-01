@@ -24,5 +24,6 @@
     <!-- Errors -->
     <string name="date_error">Invalid date range for system</string>
     <string name="rate_limit_error">User has been rate limited. Please try again in a few minutes.</string>
+    <string name="error_retry">Retry</string>
 
 </resources>
