@@ -237,7 +237,6 @@ fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
         }
     }
 
-
     val system by systemsViewModel.selectedSystem.observeAsState()
     system?.let { viewModel.setSelectedSystem(it) }
     val date by systemsViewModel.date.observeAsState()

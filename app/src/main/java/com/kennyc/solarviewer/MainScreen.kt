@@ -22,6 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.kennyc.solarviewer.daily.DailyScreen
+import com.kennyc.solarviewer.daily.DailyViewModel
 import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
@@ -56,7 +58,12 @@ fun MainScreen(
             }
 
             composable(NavTab.Daily.route) {
-                // PreviewHomeScreen()
+                DailyScreen(
+                    viewModel = viewModel(
+                        modelClass = DailyViewModel::class.java,
+                        factory = viewModelFactory
+                    ), viewModel
+                )
             }
         }
     }
