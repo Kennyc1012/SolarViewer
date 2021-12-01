@@ -25,11 +25,12 @@ import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
+import com.kennyc.solarviewer.utils.ContentState
+import com.kennyc.solarviewer.utils.ErrorState
 import com.kennyc.solarviewer.utils.asKilowattString
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
-
 
 //region StatCard
 @Composable
@@ -218,23 +219,47 @@ fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
 }
 //endregion
 
+//region Loading
 @Composable
+fun Loading() {
+    // TODO Better loading
+    Text(text = "Loading")
+}
+
+//endregion
+
+//region Content
+@Composable
+fun Content(report: SolarSystemReport) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        EnergyPiChart(
+            report,
+            modifier = Modifier.weight(1f)
+        )
+        StatGrid(report = report, modifier = Modifier.weight(1f))
+    }
+}
+
+//endregion
+
+@Composable
+@Suppress("UnnecessaryVariable")
 fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
-    val summary by viewModel.summary.observeAsState()
-    summary?.let {
-        if (it.isSuccess) {
-            val report = it.getOrThrow()
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                EnergyPiChart(
-                    report,
-                    modifier = Modifier.weight(1f)
-                )
-                StatGrid(report = report, modifier = Modifier.weight(1f))
-            }
+    val state by viewModel.state.observeAsState()
+    when (val safeState = state) {
+        is ContentState<*> -> {
+            require(safeState.item is SolarSystemReport)
+            Content(report = safeState.item)
         }
+
+        is ErrorState -> {
+            // TODO
+        }
+
+        else -> Loading()
     }
 
     val system by systemsViewModel.selectedSystem.observeAsState()
@@ -242,3 +267,5 @@ fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
     val date by systemsViewModel.date.observeAsState()
     date?.let { viewModel.setSelectedDate(it) }
 }
+
+

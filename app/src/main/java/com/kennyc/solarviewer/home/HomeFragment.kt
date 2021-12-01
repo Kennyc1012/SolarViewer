@@ -44,7 +44,7 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.summary.observe(viewLifecycleOwner, { report ->
+       /* viewModel.summary.observe(viewLifecycleOwner, { report ->
             if (report.isSuccess) {
                 renderDonut(report.getOrThrow())
                 renderStats(report.getOrThrow())
@@ -54,7 +54,7 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
 
             binding.homeMsv.viewState = MultiStateView.ViewState.CONTENT
             binding.homeRefresh.isRefreshing = false
-        })
+        })*/
 
         systemsViewModel.selectedSystem.observe(viewLifecycleOwner, Observer {
             binding.homeMsv.viewState = MultiStateView.ViewState.LOADING
