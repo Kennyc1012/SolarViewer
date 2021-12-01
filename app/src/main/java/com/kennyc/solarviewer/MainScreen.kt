@@ -39,7 +39,6 @@ fun MainScreen(
 ) {
     // TODO Values
     val navController = rememberNavController()
-    viewModel(modelClass = HomeViewModel::class.java, factory = viewModelFactory)
     Scaffold(topBar = { TopBar(listOf("System Name"), 0, "11/23/2021") },
         bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
 
