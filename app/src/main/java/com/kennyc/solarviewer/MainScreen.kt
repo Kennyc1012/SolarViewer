@@ -87,7 +87,6 @@ fun TopBar(systemNames: List<String>, selectedIndex: Int = 0, date: String) {
             Icon(imageVector = Icons.Filled.ArrowDropDown, null)
         }
 
-
         TextButton(
             onClick = { /*TODO*/ }) {
             Text(text = date)

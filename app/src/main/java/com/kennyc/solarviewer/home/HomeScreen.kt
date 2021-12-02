@@ -223,15 +223,6 @@ fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
 }
 //endregion
 
-//region Loading
-@Composable
-fun Loading() {
-    // TODO Better loading
-    Text(text = "Loading")
-}
-
-//endregion
-
 //region Content
 @Composable
 fun Content(report: SolarSystemReport) {
@@ -247,43 +238,6 @@ fun Content(report: SolarSystemReport) {
     }
 }
 
-//endregion
-
-//region Error
-@Preview(showSystemUi = true)
-@Composable
-fun Error(
-    error: Throwable? = null,
-    onClick: () -> Unit = {}
-) {
-    val errorText = when (error) {
-        is RateLimitException -> stringResource(id = R.string.rate_limit_error)
-        else -> stringResource(id = R.string.date_error)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = errorText,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(16.dp)
-        )
-        Button(onClick = onClick) {
-            Text(text = stringResource(id = R.string.error_retry))
-        }
-    }
-
-
-}
 //endregion
 
 @Composable

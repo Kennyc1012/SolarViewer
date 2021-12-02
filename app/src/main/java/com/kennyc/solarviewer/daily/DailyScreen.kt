@@ -25,6 +25,10 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarGraphData
+import com.kennyc.solarviewer.ui.Error
+import com.kennyc.solarviewer.ui.Loading
+import com.kennyc.solarviewer.utils.ContentState
+import com.kennyc.solarviewer.utils.ErrorState
 import com.kennyc.solarviewer.utils.asKilowattString
 import java.text.SimpleDateFormat
 import java.util.*
@@ -143,12 +147,14 @@ private fun generateBarData(
 
 @Composable
 fun DailyScreen(viewModel: DailyViewModel, systemsViewModel: SystemsViewModel) {
-    val solarData by viewModel.solarData.observeAsState()
+    val state by viewModel.state.observeAsState()
     val selectedBarPoint by viewModel.selectedBarPoint.observeAsState()
 
-    solarData?.let {
-        if (it.isSuccess) {
-            val barData = generateBarData(LocalContext.current, it.getOrThrow())
+    when (val safeState = state) {
+        is ContentState<*> -> {
+            require(safeState.item is List<*>)
+            val list = safeState.item as List<SolarGraphData>
+            val barData = generateBarData(LocalContext.current, list)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
@@ -165,6 +171,14 @@ fun DailyScreen(viewModel: DailyViewModel, systemsViewModel: SystemsViewModel) {
                 )
             }
         }
+
+        is ErrorState -> {
+            Error(safeState.error) {
+                viewModel.refresh()
+            }
+        }
+
+        else -> Loading()
     }
 
     val system by systemsViewModel.selectedSystem.observeAsState()

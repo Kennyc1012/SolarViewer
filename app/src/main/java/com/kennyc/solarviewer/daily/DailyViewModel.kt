@@ -8,8 +8,11 @@ import com.kennyc.solarviewer.data.model.ConsumptionStats
 import com.kennyc.solarviewer.data.model.ProductionStats
 import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.utils.ContentState
+import com.kennyc.solarviewer.utils.ErrorState
 import com.kennyc.solarviewer.utils.RxUtils.asLiveData
 import com.kennyc.solarviewer.utils.RxUtils.observeChain
+import com.kennyc.solarviewer.utils.UiState
 import com.kennyc.solarviewer.utils.toNegative
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.BehaviorSubject
@@ -28,7 +31,7 @@ class DailyViewModel @Inject constructor(
 
     private val _selectedBarPoint = PublishSubject.create<BarPoint>()
 
-    val solarData: LiveData<Result<List<SolarGraphData>>> =
+    val state: LiveData<UiState> =
         Observable.combineLatest(selectedDate, selectedSystem, { date, system ->
             val startTime = clock.midnight(date)
             val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
@@ -42,9 +45,10 @@ class DailyViewModel @Inject constructor(
                         buildData(consumption, production)
                     })
         }.observeChain()
-            .map { Result.success(it) }
-            .onErrorReturn { Result.failure(it) }
+            .map { ContentState(it) as UiState }
+            .onErrorReturn { ErrorState(it) }
             .asLiveData()
+
 
     val selectedBarPoint = _selectedBarPoint.asLiveData()
 
@@ -93,6 +97,10 @@ class DailyViewModel @Inject constructor(
 
     fun setSelectedBarPoint(point: BarPoint) {
         _selectedBarPoint.onNext(point)
+    }
+
+    fun refresh(date: Date? = null) {
+        setSelectedDate(date ?: clock.currentDate())
     }
 }
 

@@ -120,13 +120,13 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
             })
         }
 
-        viewModel.solarData.observe(viewLifecycleOwner, {
+      /*  viewModel.solarData.observe(viewLifecycleOwner, {
             if (it.isSuccess) {
                 onDailyDataUpdated(it.getOrThrow())
             } else {
                 handleError(it.exceptionOrNull())
             }
-        })
+        })*/
 
         systemsViewModel.selectedSystem.observe(viewLifecycleOwner, {
             binding.dailyMsv.viewState = MultiStateView.ViewState.LOADING
