@@ -47,7 +47,6 @@ fun MainScreen(
             startDestination = NavTab.Home.route,
             modifier = Modifier.padding(it)
         ) {
-            // TODO Correct screens
             composable(NavTab.Home.route) {
                 HomeScreen(
                     viewModel = viewModel(
