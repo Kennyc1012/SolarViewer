@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -266,5 +265,3 @@ fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
     val date by systemsViewModel.date.observeAsState()
     date?.let { viewModel.setSelectedDate(it) }
 }
-
-
