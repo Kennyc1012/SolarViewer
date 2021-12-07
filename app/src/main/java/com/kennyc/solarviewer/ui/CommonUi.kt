@@ -2,6 +2,7 @@ package com.kennyc.solarviewer.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -15,8 +16,13 @@ import com.kennyc.solarviewer.data.model.exception.RateLimitException
 
 @Composable
 fun Loading() {
-    // TODO Better loading
-    Text(text = "Loading")
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+    ) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    }
 }
 
 @Preview(showSystemUi = true)
