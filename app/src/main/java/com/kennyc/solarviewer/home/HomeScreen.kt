@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,33 +44,37 @@ fun StatCard(
     color: Color,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Card(
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = color,
         modifier = modifier
             .fillMaxHeight()
-            .background(color)
     )
     {
-        StatTitle(title, icon)
-        Text(
-            text = energy.asKilowattString() + "kWh",
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp, end = 8.dp),
-            fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
-            fontFamily = FontFamily.SansSerif,
-            fontWeight = FontWeight.Medium,
-            color = White_80
-        )
+        Box {
+            StatTitle(title, icon)
+            Text(
+                text = energy.asKilowattString() + "kWh",
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp)
+                    .align(Alignment.CenterStart),
+                fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Medium,
+                color = White_80
+            )
 
-        Text(
-            text = footer,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-            fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
-            fontFamily = FontFamily.SansSerif,
-            color = White_80
-        )
+            Text(
+                text = footer,
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                    .align(Alignment.BottomStart),
+                fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
+                fontFamily = FontFamily.SansSerif,
+                color = White_80
+            )
+        }
+
     }
 }
 
