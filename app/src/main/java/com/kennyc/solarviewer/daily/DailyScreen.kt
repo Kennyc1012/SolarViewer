@@ -27,10 +27,10 @@ import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.ui.Error
 import com.kennyc.solarviewer.ui.Loading
+import com.kennyc.solarviewer.ui.timeFormatter
 import com.kennyc.solarviewer.utils.ContentState
 import com.kennyc.solarviewer.utils.ErrorState
 import com.kennyc.solarviewer.utils.asKilowattString
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -42,9 +42,6 @@ fun DailyTitle(barPoint: BarPoint, modifier: Modifier = Modifier) {
     } else {
         val produced = barPoint.produced
         val consumed = barPoint.consumed
-        val formatter = SimpleDateFormat("h:mma", Locale.getDefault()).apply {
-            timeZone = TimeZone.getDefault()
-        }
 
         when {
             consumed > 0 && produced > 0 -> {
@@ -52,7 +49,7 @@ fun DailyTitle(barPoint: BarPoint, modifier: Modifier = Modifier) {
                     R.string.daily_stat_header_both,
                     produced.toInt(),
                     consumed.toInt(),
-                    formatter.format(barPoint.date)
+                    timeFormatter.format(barPoint.date)
                 )
             }
 
@@ -60,7 +57,7 @@ fun DailyTitle(barPoint: BarPoint, modifier: Modifier = Modifier) {
                 stringResource(
                     R.string.daily_stat_header_consumed,
                     consumed.toInt(),
-                    formatter.format(barPoint.date)
+                    timeFormatter.format(barPoint.date)
                 )
             }
 

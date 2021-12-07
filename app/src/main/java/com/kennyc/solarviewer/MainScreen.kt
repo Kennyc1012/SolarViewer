@@ -9,12 +9,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,9 +25,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kennyc.solarviewer.daily.DailyScreen
 import com.kennyc.solarviewer.daily.DailyViewModel
+import com.kennyc.solarviewer.data.model.SolarSystem
 import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
+import com.kennyc.solarviewer.ui.dateFormatter
+import com.kennyc.solarviewer.ui.timeFormatter
+import java.util.*
 
 //region MainScreen
 @ExperimentalComposeUiApi
@@ -36,11 +40,12 @@ fun MainScreen(
     viewModelFactory: ViewModelProvider.Factory? = null,
     viewModel: SystemsViewModel
 ) {
-    // TODO Values
     val navController = rememberNavController()
-    Scaffold(topBar = { TopBar(listOf("System Name"), 0, "11/23/2021") },
-        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
+    val selectedDate by viewModel.date.observeAsState()
+    val systems by viewModel.systems.observeAsState()
 
+    Scaffold(topBar = { TopBar(systems ?: emptyList(), 0, selectedDate) },
+        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
         NavHost(
             navController = navController,
             startDestination = NavTab.Home.route,
@@ -71,35 +76,28 @@ fun MainScreen(
 //region TopBar
 @ExperimentalComposeUiApi
 @Composable
-fun TopBar(systemNames: List<String>, selectedIndex: Int = 0, date: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
+fun TopBar(systemNames: List<SolarSystem> = emptyList(), selectedIndex: Int = 0, date: Date?) {
+    if (systemNames.isNotEmpty() && date != null) {
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = systemNames[selectedIndex])
-            Icon(imageVector = Icons.Filled.ArrowDropDown, null)
-        }
 
-        TextButton(
-            onClick = { /*TODO*/ }) {
-            Text(text = date)
+            Row(
+                modifier = Modifier.padding(8.dp),
+            ) {
+                Text(text = systemNames[selectedIndex].name)
+                Icon(imageVector = Icons.Filled.ArrowDropDown, null)
+            }
+
+            TextButton(
+                onClick = { /*TODO*/ }) {
+                Text(text = dateFormatter.format(date))
+            }
         }
     }
 }
-
-@Preview
-@Composable
-@ExperimentalComposeUiApi
-fun PreviewTopBar() {
-    TopBar(listOf("System Name"), 0, "11/23/2021")
-}
-
-
 //endregion
 
 //region BottomBar

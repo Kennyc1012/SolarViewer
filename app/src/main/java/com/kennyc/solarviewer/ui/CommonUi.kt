@@ -13,6 +13,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
+import java.text.SimpleDateFormat
+import java.util.*
+
+val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()).apply {
+    timeZone = TimeZone.getDefault()
+}
+
+val dateFormatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).apply {
+    timeZone = TimeZone.getDefault()
+}
 
 @Composable
 fun Loading() {

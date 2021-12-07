@@ -24,19 +24,19 @@ class SystemsViewModel @Inject constructor(
     private val dateSubject = BehaviorSubject.create<Date>()
     val date: LiveData<Date> = dateSubject.asLiveData()
 
-    private val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
+    val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
         .observeChain()
         .asLiveData()
 
-    private val lastUsedSystemsViewModel: LiveData<String> =
+    private val lastUsedSystem: LiveData<String> =
         localSettings.getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
             .observeChain()
             .asLiveData()
 
     val selectedSystem = MultiMediatorLiveData<SolarSystem>().apply {
-        addSources(systems, lastUsedSystemsViewModel)
+        addSources(systems, lastUsedSystem)
         { sys, last ->
-            removeSource(lastUsedSystemsViewModel)
+            removeSource(lastUsedSystem)
             removeSource(systems)
 
             value = last
