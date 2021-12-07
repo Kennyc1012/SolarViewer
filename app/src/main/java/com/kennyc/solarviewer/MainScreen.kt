@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,7 +30,6 @@ import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
 
 //region MainScreen
-@ExperimentalMaterial3Api
 @ExperimentalComposeUiApi
 @Composable
 fun MainScreen(
@@ -109,9 +108,9 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = navBackStackEntry?.destination?.route
 
-    NavigationBar {
+    BottomNavigation {
         tabs.forEach { tab ->
-            NavigationBarItem(
+            BottomNavigationItem(
                 icon = {
                     Icon(painter = painterResource(id = tab.icon), null)
                 },
@@ -131,6 +130,30 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
                 }
             )
         }
+
+        /* Material 3 class
+        NavigationBar {
+             tabs.forEach { tab ->
+                 NavigationBarItem(
+                     icon = {
+                         Icon(painter = painterResource(id = tab.icon), null)
+                     },
+                     label = { Text(stringResource(id = tab.title)) },
+                     alwaysShowLabel = true,
+                     selected = currentTab == tab.route,
+                     onClick = {
+                         navController.navigate(tab.route) {
+                             navController.graph.startDestinationRoute?.let { route ->
+                                 popUpTo(route) {
+                                     saveState = true
+                                 }
+                             }
+                             launchSingleTop = true
+                             restoreState = true
+                         }
+                     }
+                 )
+             }*/
     }
 }
 //endregion

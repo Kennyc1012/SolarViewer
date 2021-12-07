@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer.di.components
 
 import android.content.Context
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.kennyc.solarviewer.MainActivity
 import com.kennyc.solarviewer.MainActivityCompose
@@ -23,7 +22,6 @@ interface AppComponent {
 
     fun inject(activity: MainActivity)
 
-    @ExperimentalMaterial3Api
     @ExperimentalComposeUiApi
     fun inject(activity: MainActivityCompose)
 

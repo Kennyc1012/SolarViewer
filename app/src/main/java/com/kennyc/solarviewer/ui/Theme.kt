@@ -1,12 +1,37 @@
 package com.kennyc.solarviewer.ui
 
-import android.annotation.SuppressLint
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
+val DarkColors = darkColors(
+    primary = Theme_Blue_200,
+    onPrimary = Theme_Blue_200,
+    secondary = Theme_Orange_500,
+    onSecondary = Theme_Orange_200
+)
+
+val LightColors = lightColors(
+    primary = Theme_Blue_700,
+    onPrimary = Theme_Blue_800,
+    secondary = Theme_Orange_500,
+    onSecondary = Theme_Orange_200
+)
+
+@Composable
+fun AppTheme(isDarkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    val color = when {
+        isDarkTheme -> DarkColors
+        else -> LightColors
+    }
+
+    MaterialTheme(colors = color, content = content)
+}
+
+
+/* Material 3 Themes
 private val DarkColorScheme = darkColorScheme(
     primary = Theme_Blue_200,
     onPrimary = Theme_Blue_200,
@@ -41,4 +66,4 @@ fun AppTheme(
     }
 
     MaterialTheme(colorScheme = colorScheme, content = content)
-}
+}*/

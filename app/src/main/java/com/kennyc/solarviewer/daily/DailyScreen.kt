@@ -2,8 +2,8 @@ package com.kennyc.solarviewer.daily
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -68,7 +68,7 @@ fun DailyTitle(barPoint: BarPoint, modifier: Modifier = Modifier) {
         }
     }
 
-    Text(text = text, modifier = modifier, style = MaterialTheme.typography.titleSmall)
+    Text(text = text, modifier = modifier, style = MaterialTheme.typography.h1)
 }
 //endregion
 
