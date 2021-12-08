@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
@@ -18,8 +17,10 @@ import javax.inject.Inject
 class SystemsViewModel @Inject constructor(
     private val localSettings: LocalSettings,
     repo: SolarRepository,
-    clock: Clock
+    private val clock: Clock
 ) : ViewModel() {
+
+    val currentTime: Date = clock.currentDate()
 
     private val dateSubject = BehaviorSubject.create<Date>()
     val date: LiveData<Date> = dateSubject.asLiveData()

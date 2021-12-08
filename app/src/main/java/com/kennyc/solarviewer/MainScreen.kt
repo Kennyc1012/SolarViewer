@@ -1,5 +1,7 @@
 package com.kennyc.solarviewer
 
+import android.app.DatePickerDialog
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +15,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,7 +33,6 @@ import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
 import com.kennyc.solarviewer.ui.dateFormatter
-import com.kennyc.solarviewer.ui.timeFormatter
 import java.util.*
 
 //region MainScreen
@@ -43,8 +45,9 @@ fun MainScreen(
     val navController = rememberNavController()
     val selectedDate by viewModel.date.observeAsState()
     val systems by viewModel.systems.observeAsState()
+    val dateClick = createDatePickerClickAction(LocalContext.current, viewModel)
 
-    Scaffold(topBar = { TopBar(systems ?: emptyList(), 0, selectedDate) },
+    Scaffold(topBar = { TopBar(systems ?: emptyList(), 0, selectedDate, dateClick) },
         bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
         NavHost(
             navController = navController,
@@ -76,7 +79,12 @@ fun MainScreen(
 //region TopBar
 @ExperimentalComposeUiApi
 @Composable
-fun TopBar(systemNames: List<SolarSystem> = emptyList(), selectedIndex: Int = 0, date: Date?) {
+fun TopBar(
+    systemNames: List<SolarSystem> = emptyList(),
+    selectedIndex: Int = 0,
+    date: Date?,
+    dateButtonClick: () -> Unit = {}
+) {
     if (systemNames.isNotEmpty() && date != null) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -92,7 +100,8 @@ fun TopBar(systemNames: List<SolarSystem> = emptyList(), selectedIndex: Int = 0,
             }
 
             TextButton(
-                onClick = { /*TODO*/ }) {
+                onClick = dateButtonClick
+            ) {
                 Text(text = dateFormatter.format(date))
             }
         }
@@ -152,6 +161,35 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
                      }
                  )
              }*/
+    }
+}
+//endregion
+
+//region DatePicker
+fun createDatePickerClickAction(context: Context, viewModel: SystemsViewModel): () -> Unit {
+    return {
+        val listener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.MONTH, month)
+                set(Calendar.YEAR, year)
+                set(Calendar.DAY_OF_MONTH, day)
+            }
+
+            viewModel.setNewDate(cal.time)
+        }
+
+        val current = Calendar.getInstance().apply {
+            time = viewModel.currentTime
+        }
+
+        // TODO Style this
+        DatePickerDialog(
+            context,
+            listener,
+            current.get(Calendar.YEAR),
+            current.get(Calendar.MONTH),
+            current.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 }
 //endregion
