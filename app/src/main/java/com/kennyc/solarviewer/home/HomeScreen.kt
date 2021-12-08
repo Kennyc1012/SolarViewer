@@ -129,7 +129,7 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 color = Consumption,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
+                    .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
             )
 
             val icon = when (report.isNetPositive) {
@@ -158,7 +158,7 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 color = GRAY_800,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
+                    .padding(start = 4.dp, top = 8.dp, bottom = 8.dp, end = 8.dp)
             )
         }
     }
