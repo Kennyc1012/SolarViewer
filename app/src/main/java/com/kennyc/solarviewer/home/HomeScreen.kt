@@ -1,5 +1,6 @@
 package com.kennyc.solarviewer.home
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
@@ -28,6 +29,7 @@ import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
 import com.kennyc.solarviewer.utils.ContentState
 import com.kennyc.solarviewer.utils.ErrorState
+import com.kennyc.solarviewer.utils.UiState
 import com.kennyc.solarviewer.utils.asKilowattString
 import java.text.SimpleDateFormat
 import java.util.*
@@ -242,27 +244,32 @@ fun Content(report: SolarSystemReport) {
 //endregion
 
 @Composable
-@Suppress("UnnecessaryVariable")
 fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
-    val state by viewModel.state.observeAsState()
+    val system by systemsViewModel.selectedSystem.observeAsState()
+    system?.let { viewModel.setSelectedSystem(it) }
+    val date by systemsViewModel.date.observeAsState()
+    date?.let { viewModel.setSelectedDate(it) }
 
-    when (val safeState = state) {
+    val state by viewModel.state.observeAsState()
+    HomeUi(state) {
+        viewModel.refresh()
+    }
+}
+
+@Composable
+fun HomeUi(state: UiState?, refresh: () -> Unit = {}) {
+    when (state) {
         is ContentState<*> -> {
-            require(safeState.item is SolarSystemReport) { "Required SolarSystemReport but got $safeState" }
-            Content(report = safeState.item)
+            require(state.item is SolarSystemReport) { "Required SolarSystemReport but got $state" }
+            Content(report = state.item)
         }
 
         is ErrorState -> {
-            Error(safeState.error) {
-                viewModel.refresh(systemsViewModel.currentTime)
+            Error(state.error) {
+                refresh.invoke()
             }
         }
 
         else -> Loading()
     }
-
-    val system by systemsViewModel.selectedSystem.observeAsState()
-    system?.let { viewModel.setSelectedSystem(it) }
-    val date by systemsViewModel.date.observeAsState()
-    date?.let { viewModel.setSelectedDate(it) }
 }
