@@ -20,7 +20,7 @@ class SystemsViewModel @Inject constructor(
     private val clock: Clock
 ) : ViewModel() {
 
-    val currentTime: Date = clock.currentDate()
+    val currentTime: Date get() =  clock.currentDate()
 
     private val dateSubject = BehaviorSubject.create<Date>()
     val date: LiveData<Date> = dateSubject.asLiveData()

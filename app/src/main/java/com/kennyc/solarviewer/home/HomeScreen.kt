@@ -245,15 +245,16 @@ fun Content(report: SolarSystemReport) {
 @Suppress("UnnecessaryVariable")
 fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
     val state by viewModel.state.observeAsState()
+
     when (val safeState = state) {
         is ContentState<*> -> {
-            require(safeState.item is SolarSystemReport)
+            require(safeState.item is SolarSystemReport) { "Required SolarSystemReport but got $safeState" }
             Content(report = safeState.item)
         }
 
         is ErrorState -> {
             Error(safeState.error) {
-                viewModel.refresh()
+                viewModel.refresh(systemsViewModel.currentTime)
             }
         }
 
