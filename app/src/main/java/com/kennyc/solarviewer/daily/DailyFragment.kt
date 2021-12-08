@@ -128,7 +128,7 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
             }
         })*/
 
-        systemsViewModel.selectedSystem.observe(viewLifecycleOwner, {
+       /* systemsViewModel.selectedSystem.observe(viewLifecycleOwner, {
             binding.dailyMsv.viewState = MultiStateView.ViewState.LOADING
             viewModel.setSelectedSystem(it)
         })
@@ -136,7 +136,7 @@ class DailyFragment : BindingFragment<FragmentDailyBinding>() {
         systemsViewModel.date.observe(viewLifecycleOwner, {
             binding.dailyMsv.viewState = MultiStateView.ViewState.LOADING
             viewModel.setSelectedDate(it)
-        })
+        })*/
     }
 
     private fun onDailyDataUpdated(solarData: List<SolarGraphData>) {

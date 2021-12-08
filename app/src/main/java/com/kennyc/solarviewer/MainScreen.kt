@@ -11,7 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kennyc.solarviewer.daily.DailyScreen
 import com.kennyc.solarviewer.daily.DailyViewModel
+import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.data.model.SolarSystem
 import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
@@ -43,11 +44,12 @@ fun MainScreen(
     viewModel: SystemsViewModel
 ) {
     val navController = rememberNavController()
-    val selectedDate by viewModel.date.observeAsState()
-    val systems by viewModel.systems.observeAsState()
+    val systems by viewModel.systems.subscribeAsState(emptyList())
+    val selectedSystem by viewModel.selectedSystem.subscribeAsState(EMPTY_SYSTEM)
+    val date by viewModel.selectedDate.subscribeAsState(viewModel.currentTime)
     val dateClick = createDatePickerClickAction(LocalContext.current, viewModel)
 
-    Scaffold(topBar = { TopBar(systems ?: emptyList(), 0, selectedDate, dateClick) },
+    Scaffold(topBar = { TopBar(systems, selectedSystem, date, dateClick) },
         bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
         NavHost(
             navController = navController,
@@ -59,7 +61,7 @@ fun MainScreen(
                     viewModel = viewModel(
                         modelClass = HomeViewModel::class.java,
                         factory = viewModelFactory
-                    ), viewModel
+                    )
                 )
             }
 
@@ -68,7 +70,7 @@ fun MainScreen(
                     viewModel = viewModel(
                         modelClass = DailyViewModel::class.java,
                         factory = viewModelFactory
-                    ), viewModel
+                    )
                 )
             }
         }
@@ -80,12 +82,16 @@ fun MainScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun TopBar(
-    systemNames: List<SolarSystem> = emptyList(),
-    selectedIndex: Int = 0,
-    date: Date?,
+    systems: List<SolarSystem> = emptyList(),
+    selectedSystem: SolarSystem = EMPTY_SYSTEM,
+    date: Date,
     dateButtonClick: () -> Unit = {}
 ) {
-    if (systemNames.isNotEmpty() && date != null) {
+    if (systems.isNotEmpty() && selectedSystem != EMPTY_SYSTEM) {
+        val selectedIndex = systems.indexOfFirst {
+            it.id == selectedSystem.id
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -95,7 +101,7 @@ fun TopBar(
             Row(
                 modifier = Modifier.padding(8.dp),
             ) {
-                Text(text = systemNames[selectedIndex].name)
+                Text(text = systems[selectedIndex].name)
                 Icon(imageVector = Icons.Filled.ArrowDropDown, null)
             }
 

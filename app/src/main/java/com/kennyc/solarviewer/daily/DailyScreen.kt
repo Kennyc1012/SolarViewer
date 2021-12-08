@@ -7,6 +7,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +31,7 @@ import com.kennyc.solarviewer.ui.Loading
 import com.kennyc.solarviewer.ui.timeFormatter
 import com.kennyc.solarviewer.utils.ContentState
 import com.kennyc.solarviewer.utils.ErrorState
+import com.kennyc.solarviewer.utils.LoadingState
 import com.kennyc.solarviewer.utils.asKilowattString
 import java.util.*
 import kotlin.math.absoluteValue
@@ -143,10 +145,11 @@ private fun generateBarData(
 //endregion
 
 @Composable
-fun DailyScreen(viewModel: DailyViewModel, systemsViewModel: SystemsViewModel) {
-    val state by viewModel.state.observeAsState()
-    val selectedBarPoint by viewModel.selectedBarPoint.observeAsState()
+fun DailyScreen(viewModel: DailyViewModel) {
+    val state by viewModel.state.subscribeAsState(LoadingState)
+    val selectedBarPoint by viewModel.selectedBarPoint.subscribeAsState(BarPoint.EMPTY_POINT)
 
+    // TODO Make this its own function
     when (val safeState = state) {
         is ContentState<*> -> {
             require(safeState.item is List<*>)
@@ -171,17 +174,12 @@ fun DailyScreen(viewModel: DailyViewModel, systemsViewModel: SystemsViewModel) {
 
         is ErrorState -> {
             Error(safeState.error) {
-                viewModel.refresh()
+               // TODO viewModel.refresh()
             }
         }
 
         else -> Loading()
     }
-
-    val system by systemsViewModel.selectedSystem.observeAsState()
-    system?.let { viewModel.setSelectedSystem(it) }
-    val date by systemsViewModel.date.observeAsState()
-    date?.let { viewModel.setSelectedDate(it) }
 }
 
 private fun createBarListener(

@@ -56,7 +56,7 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
             binding.homeRefresh.isRefreshing = false
         })*/
 
-        systemsViewModel.selectedSystem.observe(viewLifecycleOwner, Observer {
+       /* systemsViewModel.selectedSystem.observe(viewLifecycleOwner, Observer {
             binding.homeMsv.viewState = MultiStateView.ViewState.LOADING
             viewModel.setSelectedSystem(it)
         })
@@ -68,7 +68,7 @@ class HomeFragment : BindingFragment<FragmentHomeBinding>() {
 
         binding.homeRefresh.setOnRefreshListener {
             systemsViewModel.date.value?.let { viewModel.setSelectedDate(it) }
-        }
+        }*/
     }
 
     private fun renderDonut(report: SolarSystemReport) {

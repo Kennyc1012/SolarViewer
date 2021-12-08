@@ -72,6 +72,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0'
     implementation 'androidx.navigation:navigation-compose:2.4.0-beta02'
+    implementation("androidx.compose.runtime:runtime-rxjava3:1.1.0-beta04")
 
     //DAGGER
     implementation "com.google.dagger:dagger:$dagger"

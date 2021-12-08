@@ -15,9 +15,10 @@ import com.kennyc.solarviewer.data.model.*
 import com.kennyc.solarviewer.data.model.exception.InvalidDateRangeException
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
 import com.kennyc.solarviewer.data.rx.CompletableSubscriber
-import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -30,7 +31,7 @@ private const val KEY_SYSTEM_CONSUMPTION = ".SYSTEM_CONSUMPTION"
 
 class EnphaseSolarRepository(
     context: Context,
-    clock: Clock,
+    private val clock: Clock,
     private val api: EnphaseApi,
     private val logger: Logger
 ) : SolarRepository {
@@ -43,7 +44,25 @@ class EnphaseSolarRepository(
         "solar_viewer.db"
     ).build().dao()
 
-    override fun getSolarSystems(): Flowable<List<SolarSystem>> {
+    private val systemSubject: BehaviorSubject<SolarSystem> =
+        BehaviorSubject.createDefault(EMPTY_SYSTEM)
+
+    private val dateSubject: BehaviorSubject<Date> =
+        BehaviorSubject.createDefault(clock.currentDate())
+
+    override var currentSystem: SolarSystem? = null
+        set(value) {
+            field = value
+            systemSubject.onNext(value ?: EMPTY_SYSTEM)
+        }
+
+    override var currentDate: Date? = null
+        set(value) {
+            field = value
+            dateSubject.onNext(value ?: clock.currentDate())
+        }
+
+    override fun getSolarSystems(): Observable<List<SolarSystem>> {
         // TODO force refresh of systems manually and based on time
         return dao.getSystems()
             .flatMap {
@@ -51,7 +70,7 @@ class EnphaseSolarRepository(
                     logger.v(TAG, "No items present, fetching from API")
                     fetchSystems()
                 } else {
-                    Flowable.just(it)
+                    Observable.just(it)
                 }
             }
             .map { it.map { system -> SolarSystem(system.id, system.name, SystemStatus.NORMAL) } }
@@ -192,6 +211,10 @@ class EnphaseSolarRepository(
                 })
     }
 
+    override fun selectedSystem(): Observable<SolarSystem> = systemSubject.share()
+
+    override fun selectedDate(): Observable<Date> = dateSubject.share()
+
     private fun toSystemStatus(value: String): SystemStatus {
         return when (value) {
             "comm" -> SystemStatus.COMMUNICATION_ERROR
@@ -216,7 +239,7 @@ class EnphaseSolarRepository(
         return exception
     }
 
-    private fun fetchSystems(): Flowable<List<RoomSolarSystem>> {
+    private fun fetchSystems(): Observable<List<RoomSolarSystem>> {
         return api.getSystems()
             .subscribeOn(Schedulers.io())
             .map { response ->
@@ -225,7 +248,7 @@ class EnphaseSolarRepository(
 
                 val currentTime = System.currentTimeMillis()
                 apiSystems.map { RoomSolarSystem(it.id, it.name, currentTime, it.status) }
-            }.toFlowable()
+            }.toObservable()
             .doOnNext {
                 dao.insertSystems(it)
                     .subscribeOn(Schedulers.io())

@@ -11,7 +11,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,10 +27,7 @@ import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
-import com.kennyc.solarviewer.utils.ContentState
-import com.kennyc.solarviewer.utils.ErrorState
-import com.kennyc.solarviewer.utils.UiState
-import com.kennyc.solarviewer.utils.asKilowattString
+import com.kennyc.solarviewer.utils.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -244,20 +241,17 @@ fun Content(report: SolarSystemReport) {
 //endregion
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, systemsViewModel: SystemsViewModel) {
-    val system by systemsViewModel.selectedSystem.observeAsState()
-    system?.let { viewModel.setSelectedSystem(it) }
-    val date by systemsViewModel.date.observeAsState()
-    date?.let { viewModel.setSelectedDate(it) }
+fun HomeScreen(viewModel: HomeViewModel) {
+    val state by viewModel.state.subscribeAsState(LoadingState)
 
-    val state by viewModel.state.observeAsState()
     HomeUi(state) {
-        viewModel.refresh()
+        // TODO
+        // viewModel.refresh()
     }
 }
 
 @Composable
-fun HomeUi(state: UiState?, refresh: () -> Unit = {}) {
+fun HomeUi(state: UiState, refresh: () -> Unit = {}) {
     when (state) {
         is ContentState<*> -> {
             require(state.item is SolarSystemReport) { "Required SolarSystemReport but got $state" }

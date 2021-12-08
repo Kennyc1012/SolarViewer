@@ -1,72 +1,55 @@
 package com.kennyc.solarviewer
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.SolarSystem
-import com.kennyc.solarviewer.data.rx.CompletableSubscriber
-import com.kennyc.solarviewer.utils.MultiMediatorLiveData
-import com.kennyc.solarviewer.utils.RxUtils.asLiveData
 import com.kennyc.solarviewer.utils.RxUtils.observeChain
-import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.core.Observable
 import java.util.*
 import javax.inject.Inject
 
 class SystemsViewModel @Inject constructor(
-    private val localSettings: LocalSettings,
-    repo: SolarRepository,
+    localSettings: LocalSettings,
+    private val repo: SolarRepository,
     private val clock: Clock
 ) : ViewModel() {
 
-    val currentTime: Date get() =  clock.currentDate()
+    val currentTime: Date get() = clock.currentDate()
 
-    private val dateSubject = BehaviorSubject.create<Date>()
-    val date: LiveData<Date> = dateSubject.asLiveData()
+    val systems: Observable<List<SolarSystem>> = repo.getSolarSystems()
 
-    val systems: LiveData<List<SolarSystem>> = repo.getSolarSystems()
-        .observeChain()
-        .asLiveData()
+    val selectedSystem = repo.selectedSystem()
 
-    private val lastUsedSystem: LiveData<String> =
-        localSettings.getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
-            .observeChain()
-            .asLiveData()
-
-    val selectedSystem = MultiMediatorLiveData<SolarSystem>().apply {
-        addSources(systems, lastUsedSystem)
-        { sys, last ->
-            removeSource(lastUsedSystem)
-            removeSource(systems)
-
-            value = last
-                // Get last stored system
-                .takeIf { id -> id != DEFAULT_VALUE }
-                ?.let { id ->
-                    // Return the system with the same id
-                    sys.firstOrNull { s ->
-                        s.id == id
-                    }
-                    // If not found return first item
-                } ?: sys.first()
-        }
-    }
+    val selectedDate = repo.selectedDate()
 
     init {
-        dateSubject.onNext(clock.currentDate())
-    }
-
-    fun onSystemSelected(solarSystem: SolarSystem) {
-        selectedSystem.value = solarSystem
-
-        localSettings.store(KEY_LAST_USED_SYSTEM, solarSystem.id)
+        systems.withLatestFrom(localSettings
+            .getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
+            .toObservable(),
+            { systems, lastUsed ->
+                lastUsed
+                    // Get last stored system
+                    .takeIf { id -> id != DEFAULT_VALUE }
+                    ?.let { id ->
+                        // Return the system with the same id
+                        systems.firstOrNull { s ->
+                            s.id == id
+                        }
+                        // If not found return first item
+                    } ?: systems.first()
+            })
             .observeChain()
-            .subscribe(CompletableSubscriber.stub())
+            .subscribe {
+                repo.currentSystem = it
+            }
+
+        setNewDate(currentTime)
     }
 
     fun setNewDate(newDate: Date) {
-        dateSubject.onNext(newDate)
+        repo.currentDate = newDate
     }
 }
 

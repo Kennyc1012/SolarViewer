@@ -1,18 +1,17 @@
 package com.kennyc.solarviewer.home
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.utils.ContentState
 import com.kennyc.solarviewer.utils.ErrorState
-import com.kennyc.solarviewer.utils.RxUtils.asLiveData
+import com.kennyc.solarviewer.utils.LoadingState
 import com.kennyc.solarviewer.utils.RxUtils.observeChain
 import com.kennyc.solarviewer.utils.UiState
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.BehaviorSubject
-import java.util.*
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -20,35 +19,45 @@ class HomeViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock
 ) : ViewModel() {
-    private val selectedDate = BehaviorSubject.create<Date>()
+    private var disposable: Disposable? = null
+    private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
-    private val selectedSystem = BehaviorSubject.create<SolarSystem>()
+    val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
+        .doOnSubscribe { subscribeToSystem() }
 
-    val state: LiveData<UiState> =
-        Observable.combineLatest(selectedDate, selectedSystem, { date, system ->
-            val start = clock.midnight(date)
-            val end = (start + TimeUnit.HOURS.toMillis(24))
-                .takeIf { !clock.isInFuture(it) }
+    private fun subscribeToSystem() {
+        disposable?.dispose()
 
-            Triple(system, start, end)
-        }).flatMapSingle { repo.getSystemReport(it.first, it.second, it.third) }
+        val dateObservable = repo.selectedDate()
+            .doOnNext {
+                uiSubject.onNext(LoadingState)
+            }
+
+        val systemObservable = repo.selectedSystem()
+            .filter { it != EMPTY_SYSTEM }
+            .doOnNext {
+                uiSubject.onNext(LoadingState)
+            }
+
+        disposable = Observable.combineLatest(dateObservable,systemObservable,
+            { date, system ->
+                val start = clock.midnight(date)
+                val end = (start + TimeUnit.HOURS.toMillis(24))
+                    .takeIf { time -> !clock.isInFuture(time) }
+
+                repo.getSystemReport(system, start, end)
+            }).flatMapSingle { it }
             .observeChain()
             .map {
                 val state: UiState = ContentState(it) as UiState
                 state
             }
             .onErrorReturn { ErrorState(it) }
-            .asLiveData()
-
-    fun setSelectedSystem(system: SolarSystem) {
-        selectedSystem.onNext(system)
+            .subscribe { state -> uiSubject.onNext(state) }
     }
 
-    fun setSelectedDate(date: Date) {
-        selectedDate.onNext(date)
-    }
-
-    fun refresh(date: Date? = null) {
-        setSelectedDate(date ?: clock.currentDate())
+    override fun onCleared() {
+        super.onCleared()
+        disposable?.dispose()
     }
 }
