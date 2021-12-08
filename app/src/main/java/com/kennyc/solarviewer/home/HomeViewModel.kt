@@ -23,9 +23,9 @@ class HomeViewModel @Inject constructor(
     private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
     val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
-        .doOnSubscribe { subscribeToSystem() }
+        .doOnSubscribe { refresh() }
 
-    private fun subscribeToSystem() {
+    fun refresh() {
         disposable?.dispose()
 
         val dateObservable = repo.selectedDate()
@@ -39,7 +39,7 @@ class HomeViewModel @Inject constructor(
                 uiSubject.onNext(LoadingState)
             }
 
-        disposable = Observable.combineLatest(dateObservable,systemObservable,
+        disposable = Observable.combineLatest(dateObservable, systemObservable,
             { date, system ->
                 val start = clock.midnight(date)
                 val end = (start + TimeUnit.HOURS.toMillis(24))

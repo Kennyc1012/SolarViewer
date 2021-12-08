@@ -6,7 +6,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +23,6 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.kennyc.solarviewer.R
-import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.ui.Error
 import com.kennyc.solarviewer.ui.Loading
@@ -174,7 +172,7 @@ fun DailyScreen(viewModel: DailyViewModel) {
 
         is ErrorState -> {
             Error(safeState.error) {
-               // TODO viewModel.refresh()
+                viewModel.refresh()
             }
         }
 

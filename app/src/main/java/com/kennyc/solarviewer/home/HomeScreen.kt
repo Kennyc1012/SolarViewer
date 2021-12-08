@@ -1,6 +1,5 @@
 package com.kennyc.solarviewer.home
 
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kennyc.solarviewer.R
-import com.kennyc.solarviewer.SystemsViewModel
 import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
 import com.kennyc.solarviewer.utils.*
@@ -245,8 +243,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
 
     HomeUi(state) {
-        // TODO
-        // viewModel.refresh()
+        viewModel.refresh()
     }
 }
 

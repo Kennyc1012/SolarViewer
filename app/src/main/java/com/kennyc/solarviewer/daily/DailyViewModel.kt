@@ -22,12 +22,12 @@ class DailyViewModel @Inject constructor(
 ) : ViewModel() {
     private var disposable: Disposable? = null
     private val barSubject = PublishSubject.create<BarPoint>()
-    val selectedBarPoint = barSubject
+    val selectedBarPoint: Observable<BarPoint> = barSubject
 
     private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
     val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
-        .doOnSubscribe { subscribeToSystem() }
+        .doOnSubscribe { refresh() }
 
 
     private fun buildData(
@@ -69,7 +69,7 @@ class DailyViewModel @Inject constructor(
         barSubject.onNext(point)
     }
 
-    private fun subscribeToSystem() {
+    fun refresh() {
         disposable?.dispose()
 
         val dateObservable = repo.selectedDate()
