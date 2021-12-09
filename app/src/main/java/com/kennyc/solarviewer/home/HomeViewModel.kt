@@ -49,7 +49,7 @@ class HomeViewModel @Inject constructor(
             }).flatMapSingle { it }
             .observeChain()
             .map {
-                val state: UiState = ContentState(it) as UiState
+                val state: UiState = ContentState(it)
                 state
             }
             .onErrorReturn { ErrorState(it) }

@@ -95,7 +95,10 @@ class DailyViewModel @Inject constructor(
                     })
         }).flatMapSingle { it }
             .observeChain()
-            .map { ContentState(it) as UiState }
+            .map {
+                val state: UiState = ContentState(it)
+                state
+            }
             .onErrorReturn { ErrorState(it) }
             .subscribe { state -> uiSubject.onNext(state) }
     }

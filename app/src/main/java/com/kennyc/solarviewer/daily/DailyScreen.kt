@@ -27,10 +27,7 @@ import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.ui.Error
 import com.kennyc.solarviewer.ui.Loading
 import com.kennyc.solarviewer.ui.timeFormatter
-import com.kennyc.solarviewer.utils.ContentState
-import com.kennyc.solarviewer.utils.ErrorState
-import com.kennyc.solarviewer.utils.LoadingState
-import com.kennyc.solarviewer.utils.asKilowattString
+import com.kennyc.solarviewer.utils.*
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -147,11 +144,25 @@ fun DailyScreen(viewModel: DailyViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
     val selectedBarPoint by viewModel.selectedBarPoint.subscribeAsState(BarPoint.EMPTY_POINT)
 
-    // TODO Make this its own function
-    when (val safeState = state) {
+    DailyScreenUi(
+        state = state,
+        selectedBarPoint = selectedBarPoint,
+        refresh = { viewModel.refresh() }) {
+        viewModel.setSelectedBarPoint(it)
+    }
+}
+
+@Composable
+private fun DailyScreenUi(
+    state: UiState,
+    selectedBarPoint: BarPoint,
+    refresh: () -> Unit = {},
+    barPointSelected: (BarPoint) -> Unit = {}
+) {
+    when (state) {
         is ContentState<*> -> {
-            require(safeState.item is List<*>)
-            val list = safeState.item as List<SolarGraphData>
+            require(state.item is List<*>)
+            val list = state.item as List<SolarGraphData>
             val barData = generateBarData(LocalContext.current, list)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -161,18 +172,20 @@ fun DailyScreen(viewModel: DailyViewModel) {
                     .fillMaxWidth()
                     .padding(bottom = 16.dp, top = 16.dp)
             ) {
-                DailyTitle(selectedBarPoint ?: BarPoint.EMPTY_POINT)
+                DailyTitle(selectedBarPoint)
                 BarGraph(
                     barData, Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(), createBarListener(barData, viewModel)
+                        .fillMaxHeight(), createBarListener(barData) { point ->
+                        barPointSelected.invoke(point)
+                    }
                 )
             }
         }
 
         is ErrorState -> {
-            Error(safeState.error) {
-                viewModel.refresh()
+            Error(state.error) {
+                refresh.invoke()
             }
         }
 
@@ -182,11 +195,11 @@ fun DailyScreen(viewModel: DailyViewModel) {
 
 private fun createBarListener(
     barPair: Pair<BarDataSet, List<Date>>,
-    viewModel: DailyViewModel
+    pointSelected: (BarPoint) -> Unit = {}
 ): OnChartValueSelectedListener {
     return object : OnChartValueSelectedListener {
         override fun onNothingSelected() {
-            viewModel.setSelectedBarPoint(BarPoint.EMPTY_POINT)
+            pointSelected.invoke(BarPoint.EMPTY_POINT)
         }
 
         override fun onValueSelected(e: Entry, h: Highlight) {
@@ -197,7 +210,7 @@ private fun createBarListener(
             val produced = stats.positiveSum
             val consumed = stats.negativeSum
             val date = stats.data as Date
-            viewModel.setSelectedBarPoint(BarPoint(produced, consumed, date))
+            pointSelected.invoke(BarPoint(produced, consumed, date))
         }
     }
 }
