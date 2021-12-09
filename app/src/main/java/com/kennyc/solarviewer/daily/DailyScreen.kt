@@ -62,7 +62,7 @@ fun DailyTitle(barPoint: BarPoint, modifier: Modifier = Modifier) {
         }
     }
 
-    Text(text = text, modifier = modifier, style = MaterialTheme.typography.subtitle2)
+    Text(text = text, modifier = modifier, style = MaterialTheme.typography.caption)
 }
 //endregion
 

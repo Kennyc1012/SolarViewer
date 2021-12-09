@@ -18,8 +18,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kennyc.solarviewer.R
@@ -55,7 +56,6 @@ fun StatCard(
                     .padding(start = 8.dp, end = 8.dp)
                     .align(Alignment.CenterStart),
                 fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
-                fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.Medium,
                 color = White_80
             )
@@ -66,11 +66,10 @@ fun StatCard(
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
                     .align(Alignment.BottomStart),
                 fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
-                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Normal,
                 color = White_80
             )
         }
-
     }
 }
 
@@ -86,7 +85,7 @@ fun StatTitle(title: String, @DrawableRes icon: Int) {
         Text(
             text = title,
             fontSize = dimensionResource(id = R.dimen.stat_card_title).value.sp,
-            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Normal,
             color = White_80
         )
 
@@ -165,7 +164,7 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
 }
 //endregion
 
-//region Donut
+//region EnergyPiChart
 @Composable
 fun EnergyPiChart(
     report: SolarSystemReport,
@@ -186,14 +185,16 @@ fun EnergyPiChart(
         time
     )
 
-    Box(modifier = modifier.padding(16.dp)) {
+    Box(
+        modifier = modifier.padding(16.dp)
+    ) {
         Donut(percentage)
         Text(
             text = consumedEnergy,
             modifier = Modifier.align(Alignment.Center),
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            fontFamily = FontFamily.Serif
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -219,6 +220,19 @@ fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
     }
 
 }
+
+@Preview
+@Composable
+private fun PreviewEnergyPiChart() {
+    EnergyPiChart(
+        SolarSystemReport(
+            10000,
+            20000,
+            1000,
+            2000, Date()
+        )
+    )
+}
 //endregion
 
 //region Content
@@ -238,6 +252,7 @@ fun Content(report: SolarSystemReport) {
 
 //endregion
 
+//region HomeScreen
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
@@ -264,3 +279,35 @@ fun HomeUi(state: UiState, refresh: () -> Unit = {}) {
         else -> Loading()
     }
 }
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PreviewHomeScreenContent() {
+    AppTheme {
+        HomeUi(
+            ContentState(
+                SolarSystemReport(
+                    10000,
+                    20000,
+                    1000,
+                    2000, Date()
+                )
+            )
+        )
+    }
+}
+
+
+@Preview
+@Composable
+private fun PreviewHomeError() {
+    HomeUi(ErrorState(RuntimeException()))
+}
+
+
+@Preview
+@Composable
+private fun PreviewHomeScreenLoading() {
+    HomeUi(LoadingState)
+}
+//endregion
