@@ -46,20 +46,9 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'
-    implementation 'com.google.android.material:material:1.5.0-beta01'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
-    implementation 'androidx.fragment:fragment-ktx:1.4.0'
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-    implementation 'com.github.Kennyc1012:MultiStateView:2.1.2'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
-    implementation 'androidx.preference:preference-ktx:1.1.1'
     implementation "io.reactivex.rxjava3:rxjava:$rx"
-    implementation "androidx.lifecycle:lifecycle-reactivestreams-ktx:2.4.0"
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
 
     // Compose
