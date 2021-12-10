@@ -1,5 +1,6 @@
 package com.kennyc.solarviewer.home
 
+import android.content.res.Configuration
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
@@ -10,16 +11,19 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,7 +69,7 @@ fun StatCard(
                 modifier = Modifier
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
                     .align(Alignment.BottomStart),
-                fontSize =12.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
                 color = White_80
             )
@@ -237,16 +241,32 @@ private fun PreviewEnergyPiChart() {
 
 //region Content
 @Composable
-fun Content(report: SolarSystemReport) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        EnergyPiChart(
-            report,
-            modifier = Modifier.weight(1f)
-        )
-        StatGrid(report = report, modifier = Modifier.weight(1f))
+fun Content(
+    report: SolarSystemReport,
+    orientation: Int = Configuration.ORIENTATION_PORTRAIT
+) {
+    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            EnergyPiChart(
+                report,
+                modifier = Modifier.weight(1f)
+            )
+            StatGrid(report = report, modifier = Modifier.weight(1f))
+        }
+    } else {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            EnergyPiChart(
+                report,
+                modifier = Modifier.weight(1f)
+            )
+            StatGrid(report = report, modifier = Modifier.weight(1f))
+        }
     }
 }
 
@@ -264,10 +284,13 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
 @Composable
 fun HomeUi(state: UiState, refresh: () -> Unit = {}) {
+    val currentOrientation = LocalConfiguration.current.orientation
+    val orientation by remember { mutableStateOf(currentOrientation) }
+
     when (state) {
         is ContentState<*> -> {
             require(state.item is SolarSystemReport) { "Required SolarSystemReport but got $state" }
-            Content(report = state.item)
+            Content(report = state.item, orientation)
         }
 
         is ErrorState -> {
@@ -280,7 +303,7 @@ fun HomeUi(state: UiState, refresh: () -> Unit = {}) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_3)
 @Composable
 private fun PreviewHomeScreenContent() {
     AppTheme {
@@ -297,13 +320,34 @@ private fun PreviewHomeScreenContent() {
     }
 }
 
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    device = Devices.AUTOMOTIVE_1024p,
+    widthDp = 1024,
+    heightDp = 720
+)
+@Composable
+private fun PreviewHomeScreenContentLandscape() {
+    AppTheme {
+        HomeUi(
+            ContentState(
+                SolarSystemReport(
+                    10000,
+                    20000,
+                    1000,
+                    2000, Date()
+                )
+            )
+        )
+    }
+}
 
 @Preview
 @Composable
 private fun PreviewHomeError() {
     HomeUi(ErrorState(RuntimeException()))
 }
-
 
 @Preview
 @Composable
