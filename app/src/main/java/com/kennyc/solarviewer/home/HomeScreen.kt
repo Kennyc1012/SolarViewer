@@ -55,7 +55,7 @@ fun StatCard(
                 modifier = Modifier
                     .padding(start = 8.dp, end = 8.dp)
                     .align(Alignment.CenterStart),
-                fontSize = dimensionResource(id = R.dimen.stat_card_energy).value.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = White_80
             )
@@ -65,7 +65,7 @@ fun StatCard(
                 modifier = Modifier
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
                     .align(Alignment.BottomStart),
-                fontSize = dimensionResource(id = R.dimen.stat_card_footer).value.sp,
+                fontSize =12.sp,
                 fontWeight = FontWeight.Normal,
                 color = White_80
             )
@@ -84,7 +84,7 @@ fun StatTitle(title: String, @DrawableRes icon: Int) {
     ) {
         Text(
             text = title,
-            fontSize = dimensionResource(id = R.dimen.stat_card_title).value.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             color = White_80
         )
