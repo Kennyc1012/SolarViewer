@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="StatsCard">
-        <attr name="stat_title" format="string" />
-        <attr name="stat_icon" format="reference" />
-        <attr name="stat_footer" format="string" />
-    </declare-styleable>
-
-</resources>

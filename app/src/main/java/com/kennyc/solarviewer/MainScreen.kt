@@ -88,7 +88,7 @@ fun TopBar(
     dateButtonClick: () -> Unit = {}
 ) {
     if (systems.isNotEmpty() && selectedSystem != EMPTY_SYSTEM) {
-        val selectedIndex = systems.indexOfFirst {
+         val selectedIndex = systems.indexOfFirst {
             it.id == selectedSystem.id
         }
 
