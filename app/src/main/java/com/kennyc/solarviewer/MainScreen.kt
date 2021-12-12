@@ -101,7 +101,8 @@ fun TopBar(
             Row(
                 modifier = Modifier.padding(8.dp),
             ) {
-                Text(text = systems[selectedIndex].name)
+                Text(text = systems[selectedIndex].name,
+                style = MaterialTheme.typography.h6)
                 Icon(imageVector = Icons.Filled.ArrowDropDown, null)
             }
 
