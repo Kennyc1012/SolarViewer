@@ -26,7 +26,7 @@ import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.ui.Error
 import com.kennyc.solarviewer.ui.Loading
-import com.kennyc.solarviewer.ui.refreshLifecycle
+import com.kennyc.solarviewer.ui.RefreshLifecycle
 import com.kennyc.solarviewer.ui.timeFormatter
 import com.kennyc.solarviewer.utils.*
 import java.util.*
@@ -123,12 +123,12 @@ private fun generateBarData(
     val barData = BarDataSet(entries, null).apply {
         val consumedLabel = context.getString(
             R.string.daily_consumed,
-            solarData.sumBy { it.consumed.toInt().absoluteValue }.asKilowattString()
+            solarData.sumOf { it.consumed.toInt().absoluteValue }.asKilowattString()
         )
 
         val producedLabel = context.getString(
             R.string.daily_produced,
-            solarData.sumBy { it.produced.toInt() }.asKilowattString()
+            solarData.sumOf { it.produced.toInt() }.asKilowattString()
         )
 
         stackLabels = arrayOf(producedLabel, consumedLabel)
@@ -145,7 +145,7 @@ fun DailyScreen(viewModel: DailyViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
     val selectedBarPoint by viewModel.selectedBarPoint.subscribeAsState(BarPoint.EMPTY_POINT)
     val refresh =  { viewModel.refresh() }
-    refreshLifecycle(onRefresh = refresh)
+    RefreshLifecycle(onRefresh = refresh)
 
     DailyScreenUi(
         state = state,

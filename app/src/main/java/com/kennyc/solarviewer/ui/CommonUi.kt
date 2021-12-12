@@ -1,6 +1,5 @@
 package com.kennyc.solarviewer.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -78,7 +77,7 @@ fun Error(
 }
 
 @Composable
-fun refreshLifecycle(
+fun RefreshLifecycle(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     onRefresh: () -> Unit = {}
 ) {

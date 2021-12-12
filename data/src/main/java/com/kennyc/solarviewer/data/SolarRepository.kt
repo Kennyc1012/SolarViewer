@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer.data
 
 import com.kennyc.solarviewer.data.model.*
-import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import java.util.*

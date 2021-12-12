@@ -8,7 +8,6 @@ val Production = Color(0XFF00bfa5)
 val Blue_800 = Color(0XFF1976d2)
 val GRAY_800 = Color(0Xff424242)
 val White_80 = Color(0XCCFFFFFF)
-val White_50 = Color(0X80FFFFFF)
 
 // Theme Colors
 val Theme_Blue_200 = Color(0XFFadbfcb)

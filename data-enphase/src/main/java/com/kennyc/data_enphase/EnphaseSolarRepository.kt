@@ -202,8 +202,8 @@ class EnphaseSolarRepository(
                     }
 
                     SolarSystemReport(
-                        production.sumBy { it.powerCreatedInWh },
-                        consumption.sumBy { it.powerConsumedInWh },
+                        production.sumOf { it.powerCreatedInWh },
+                        consumption.sumOf { it.powerConsumedInWh },
                         totalExport,
                         totalImport,
                         Date(TimeUnit.SECONDS.toMillis(consumption.last().endingAtTS))

@@ -1,7 +1,6 @@
 package com.kennyc.solarviewer.home
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
@@ -281,7 +280,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         viewModel.refresh()
     }
 
-    refreshLifecycle(onRefresh = refresh)
+    RefreshLifecycle(onRefresh = refresh)
     HomeUi(state) {
        refresh.invoke()
     }

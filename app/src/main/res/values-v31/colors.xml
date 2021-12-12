@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <color name="primaryColor">@android:color/system_accent2_700</color>
-    <color name="primaryDarkColor">@android:color/system_accent2_900</color>
-    <color name="secondaryColor">@android:color/system_accent1_600</color>
-    <color name="secondaryDarkColor">@android:color/system_accent1_800</color>
-
-</resources>
