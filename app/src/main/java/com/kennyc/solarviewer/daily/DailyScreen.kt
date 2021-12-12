@@ -26,6 +26,7 @@ import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.model.SolarGraphData
 import com.kennyc.solarviewer.ui.Error
 import com.kennyc.solarviewer.ui.Loading
+import com.kennyc.solarviewer.ui.refreshLifecycle
 import com.kennyc.solarviewer.ui.timeFormatter
 import com.kennyc.solarviewer.utils.*
 import java.util.*
@@ -143,11 +144,13 @@ private fun generateBarData(
 fun DailyScreen(viewModel: DailyViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
     val selectedBarPoint by viewModel.selectedBarPoint.subscribeAsState(BarPoint.EMPTY_POINT)
+    val refresh =  { viewModel.refresh() }
+    refreshLifecycle(onRefresh = refresh)
 
     DailyScreenUi(
         state = state,
         selectedBarPoint = selectedBarPoint,
-        refresh = { viewModel.refresh() }) {
+        refresh = refresh) {
         viewModel.setSelectedBarPoint(it)
     }
 }

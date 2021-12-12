@@ -27,8 +27,6 @@ class DailyViewModel @Inject constructor(
     private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
     val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
-        .doOnSubscribe { refresh() }
-
 
     private fun buildData(
         consumed: List<ConsumptionStats>,

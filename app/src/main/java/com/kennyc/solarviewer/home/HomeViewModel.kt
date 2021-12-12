@@ -23,7 +23,6 @@ class HomeViewModel @Inject constructor(
     private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
     val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
-        .doOnSubscribe { refresh() }
 
     fun refresh() {
         disposable?.dispose()

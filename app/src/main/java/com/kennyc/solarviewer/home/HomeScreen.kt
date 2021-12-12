@@ -1,6 +1,7 @@
 package com.kennyc.solarviewer.home
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.Canvas
@@ -276,9 +277,13 @@ fun Content(
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
     val state by viewModel.state.subscribeAsState(LoadingState)
-
-    HomeUi(state) {
+    val refresh = {
         viewModel.refresh()
+    }
+
+    refreshLifecycle(onRefresh = refresh)
+    HomeUi(state) {
+       refresh.invoke()
     }
 }
 
