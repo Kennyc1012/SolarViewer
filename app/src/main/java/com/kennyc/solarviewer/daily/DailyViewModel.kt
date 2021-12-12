@@ -1,18 +1,17 @@
 package com.kennyc.solarviewer.daily
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.ConsumptionStats
+import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.data.model.ProductionStats
 import com.kennyc.solarviewer.data.model.SolarGraphData
-import com.kennyc.solarviewer.data.model.SolarSystem
-import com.kennyc.solarviewer.utils.RxUtils.asLiveData
+import com.kennyc.solarviewer.utils.*
 import com.kennyc.solarviewer.utils.RxUtils.observeChain
-import com.kennyc.solarviewer.utils.toNegative
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.BehaviorSubject
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -21,27 +20,13 @@ class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock
 ) : ViewModel() {
-    private val selectedDate = BehaviorSubject.create<Date>()
+    private var disposable: Disposable? = null
+    private val barSubject = PublishSubject.create<BarPoint>()
+    val selectedBarPoint: Observable<BarPoint> = barSubject
 
-    private val selectedSystem = BehaviorSubject.create<SolarSystem>()
+    private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
-    val solarData: LiveData<Result<List<SolarGraphData>>> =
-        Observable.combineLatest(selectedDate, selectedSystem, { date, system ->
-            val startTime = clock.midnight(date)
-            val endDay = (startTime + TimeUnit.HOURS.toMillis(24))
-                .takeIf { !clock.isInFuture(it) }
-
-            Triple(system, startTime, endDay)
-        }).flatMapSingle {
-            repo.getProductionStats(it.first, it.second, it.third)
-                .zipWith(repo.getConsumptionStats(it.first, it.second, it.third),
-                    { production, consumption ->
-                        buildData(consumption, production)
-                    })
-        }.observeChain()
-            .map { Result.success(it) }
-            .onErrorReturn { Result.failure(it) }
-            .asLiveData()
+    val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
 
     private fun buildData(
         consumed: List<ConsumptionStats>,
@@ -78,12 +63,47 @@ class DailyViewModel @Inject constructor(
         return entries
     }
 
-    fun setSelectedSystem(system: SolarSystem) {
-        selectedSystem.onNext(system)
+    fun setSelectedBarPoint(point: BarPoint) {
+        barSubject.onNext(point)
     }
 
-    fun setSelectedDate(date: Date) {
-        selectedDate.onNext(date)
+    fun refresh() {
+        disposable?.dispose()
+
+        val dateObservable = repo.selectedDate()
+            .doOnNext {
+                uiSubject.onNext(LoadingState)
+            }
+
+        val systemObservable = repo.selectedSystem()
+            .filter { it != EMPTY_SYSTEM }
+            .doOnNext {
+                uiSubject.onNext(LoadingState)
+            }
+
+        disposable = Observable.combineLatest(dateObservable, systemObservable, { date, system ->
+            val start = clock.midnight(date)
+            val end = (start + TimeUnit.HOURS.toMillis(24))
+                .takeIf { !clock.isInFuture(it) }
+
+            repo.getProductionStats(system, start, end)
+                .zipWith(repo.getConsumptionStats(system, start, end),
+                    { production, consumption ->
+                        buildData(consumption, production)
+                    })
+        }).flatMapSingle { it }
+            .observeChain()
+            .map {
+                val state: UiState = ContentState(it)
+                state
+            }
+            .onErrorReturn { ErrorState(it) }
+            .subscribe { state -> uiSubject.onNext(state) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable?.dispose()
     }
 }
 

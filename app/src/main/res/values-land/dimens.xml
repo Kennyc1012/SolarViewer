@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <dimen name="stat_card_title">14sp</dimen>
-    <dimen name="stat_card_energy">16sp</dimen>
-    <dimen name="stat_card_footer">10sp</dimen>
-
-</resources>

@@ -4,7 +4,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.*
 
-class BarChartXAxisFormatter(private val times: MutableList<Date>) : ValueFormatter() {
+class BarChartXAxisFormatter(private val times: List<Date>) : ValueFormatter() {
 
     private val formatter = SimpleDateFormat("ha", Locale.getDefault()).apply {
         timeZone = TimeZone.getDefault()
