@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rxjava3.subscribeAsState
@@ -37,6 +38,7 @@ import com.kennyc.solarviewer.ui.dateFormatter
 import java.util.*
 
 //region MainScreen
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalComposeUiApi
 @Composable
 fun MainScreen(
@@ -102,7 +104,7 @@ fun TopBar(
                 modifier = Modifier.padding(8.dp),
             ) {
                 Text(text = systems[selectedIndex].name,
-                style = MaterialTheme.typography.h6)
+                style = MaterialTheme.typography.titleLarge)
                 Icon(imageVector = Icons.Filled.ArrowDropDown, null)
             }
 
@@ -122,30 +124,6 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = navBackStackEntry?.destination?.route
 
-    BottomNavigation {
-        tabs.forEach { tab ->
-            BottomNavigationItem(
-                icon = {
-                    Icon(painter = painterResource(id = tab.icon), null)
-                },
-                label = { Text(stringResource(id = tab.title)) },
-                alwaysShowLabel = true,
-                selected = currentTab == tab.route,
-                onClick = {
-                    navController.navigate(tab.route) {
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
-        }
-
-        /* Material 3 class
         NavigationBar {
              tabs.forEach { tab ->
                  NavigationBarItem(
@@ -167,7 +145,7 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
                          }
                      }
                  )
-             }*/
+             }
     }
 }
 //endregion

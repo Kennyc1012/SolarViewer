@@ -1,10 +1,10 @@
 package com.kennyc.solarviewer.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -62,7 +62,7 @@ fun Error(
     ) {
         Text(
             text = errorText,
-            style = MaterialTheme.typography.body1
+            style = MaterialTheme.typography.bodySmall
         )
         Spacer(
             modifier = Modifier

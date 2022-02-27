@@ -7,8 +7,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,7 @@ import java.util.*
 import kotlin.math.abs
 
 //region StatCard
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatCard(
     title: String,
@@ -47,18 +49,18 @@ fun StatCard(
 ) {
     Card(
         shape = RoundedCornerShape(10.dp),
-        backgroundColor = color,
+        containerColor = color,
         modifier = modifier
             .fillMaxHeight()
     )
     {
-        Box {
+        Box(modifier = modifier.fillMaxHeight().fillMaxWidth()) {
             StatTitle(title, icon)
             Text(
                 text = energy.asKilowattString() + "kWh",
                 modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp)
-                    .align(Alignment.CenterStart),
+                        .padding(start = 8.dp, end = 8.dp)
+                        .align(Alignment.CenterStart),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = White_80
@@ -67,8 +69,8 @@ fun StatCard(
             Text(
                 text = footer,
                 modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                    .align(Alignment.BottomStart),
+                        .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                        .align(Alignment.BottomStart),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
                 color = White_80
@@ -81,9 +83,9 @@ fun StatCard(
 fun StatTitle(title: String, @DrawableRes icon: Int) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp),
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(start = 8.dp, end = 8.dp, top = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
@@ -108,8 +110,8 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 icon = R.drawable.ic_wb_sunny_24,
                 color = Production,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
+                        .weight(1f)
+                        .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 4.dp)
             )
             StatCard(
                 title = stringResource(id = R.string.home_stat_title_exported),
@@ -118,8 +120,8 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 icon = R.drawable.ic_export_power_24,
                 color = Blue_800,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
+                        .weight(1f)
+                        .padding(start = 4.dp, top = 8.dp, bottom = 4.dp, end = 8.dp)
             )
         }
 
@@ -131,8 +133,8 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 icon = R.drawable.ic_flash_on_24,
                 color = Consumption,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
+                        .weight(1f)
+                        .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
             )
 
             val icon = when (report.isNetPositive) {
@@ -160,8 +162,8 @@ private fun StatGrid(report: SolarSystemReport, modifier: Modifier = Modifier) {
                 icon = icon,
                 color = GRAY_800,
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 4.dp, top = 8.dp, bottom = 8.dp, end = 8.dp)
+                        .weight(1f)
+                        .padding(start = 4.dp, top = 8.dp, bottom = 8.dp, end = 8.dp)
             )
         }
     }
@@ -207,14 +209,14 @@ fun EnergyPiChart(
 fun Donut(@FloatRange(from = 0.0, to = 1.0) solarEnergyPercentage: Float) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
+                .fillMaxWidth()
+                .fillMaxHeight()
     ) {
         Canvas(
             modifier = Modifier
-                .height(225.dp)
-                .width(225.dp)
-                .align(Alignment.Center)
+                    .height(225.dp)
+                    .width(225.dp)
+                    .align(Alignment.Center)
         ) {
             val stroke = Stroke(50f)
             val sweep = 360f * solarEnergyPercentage
