@@ -7,9 +7,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,12 +47,14 @@ fun StatCard(
 ) {
     Card(
         shape = RoundedCornerShape(10.dp),
-        containerColor = color,
+        colors = CardDefaults.cardColors(containerColor = color),
         modifier = modifier
             .fillMaxHeight()
     )
     {
-        Box(modifier = modifier.fillMaxHeight().fillMaxWidth()) {
+        Box(modifier = modifier
+                .fillMaxHeight()
+                .fillMaxWidth()) {
             StatTitle(title, icon)
             Text(
                 text = energy.asKilowattString() + "kWh",
