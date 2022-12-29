@@ -4,14 +4,13 @@ buildscript {
     ext.dagger = '2.41'
     ext.nav_version = '2.3.5'
     ext.compose_version = '1.2.0-beta01'
-    ext.target_sdk = 32
+    ext.target_sdk = 33
     ext.min_sdk = 26
     ext.rx = "3.1.4"
-    ext.compile_sdk = 32
+    ext.compile_sdk = 33
 
     repositories {
         google()
-        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.0.4'
@@ -25,7 +24,6 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
         maven { url 'https://jitpack.io' }
     }
 }
