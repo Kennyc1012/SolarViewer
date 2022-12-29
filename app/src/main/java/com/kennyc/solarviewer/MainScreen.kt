@@ -42,8 +42,8 @@ import java.util.*
 @ExperimentalComposeUiApi
 @Composable
 fun MainScreen(
-    viewModelFactory: ViewModelProvider.Factory? = null,
-    viewModel: SystemsViewModel
+        viewModelFactory: ViewModelProvider.Factory? = null,
+        viewModel: SystemsViewModel
 ) {
     val navController = rememberNavController()
     val systems by viewModel.systems.subscribeAsState(emptyList())
@@ -52,27 +52,27 @@ fun MainScreen(
     val dateClick = createDatePickerClickAction(LocalContext.current, viewModel)
 
     Scaffold(topBar = { TopBar(systems, selectedSystem, date, dateClick) },
-        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
+            bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
         NavHost(
-            navController = navController,
-            startDestination = NavTab.Home.route,
-            modifier = Modifier.padding(it)
+                navController = navController,
+                startDestination = NavTab.Home.route,
+                modifier = Modifier.padding(it)
         ) {
             composable(NavTab.Home.route) {
                 HomeScreen(
-                    viewModel = viewModel(
-                        modelClass = HomeViewModel::class.java,
-                        factory = viewModelFactory
-                    )
+                        viewModel = viewModel(
+                                modelClass = HomeViewModel::class.java,
+                                factory = viewModelFactory
+                        )
                 )
             }
 
             composable(NavTab.Daily.route) {
                 DailyScreen(
-                    viewModel = viewModel(
-                        modelClass = DailyViewModel::class.java,
-                        factory = viewModelFactory
-                    )
+                        viewModel = viewModel(
+                                modelClass = DailyViewModel::class.java,
+                                factory = viewModelFactory
+                        )
                 )
             }
         }
@@ -84,32 +84,32 @@ fun MainScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun TopBar(
-    systems: List<SolarSystem> = emptyList(),
-    selectedSystem: SolarSystem = EMPTY_SYSTEM,
-    date: Date,
-    dateButtonClick: () -> Unit = {}
+        systems: List<SolarSystem> = emptyList(),
+        selectedSystem: SolarSystem = EMPTY_SYSTEM,
+        date: Date,
+        dateButtonClick: () -> Unit = {}
 ) {
     if (systems.isNotEmpty() && selectedSystem != EMPTY_SYSTEM) {
-         val selectedIndex = systems.indexOfFirst {
+        val selectedIndex = systems.indexOfFirst {
             it.id == selectedSystem.id
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
         ) {
 
             Row(
-                modifier = Modifier.padding(8.dp),
+                    modifier = Modifier.padding(8.dp),
             ) {
                 Text(text = systems[selectedIndex].name,
-                style = MaterialTheme.typography.titleLarge)
+                        style = MaterialTheme.typography.titleLarge)
                 Icon(imageVector = Icons.Filled.ArrowDropDown, null)
             }
 
             TextButton(
-                onClick = dateButtonClick
+                    onClick = dateButtonClick
             ) {
                 Text(text = dateFormatter.format(date))
             }
@@ -124,28 +124,28 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = navBackStackEntry?.destination?.route
 
-        NavigationBar {
-             tabs.forEach { tab ->
-                 NavigationBarItem(
-                     icon = {
-                         Icon(painter = painterResource(id = tab.icon), null)
-                     },
-                     label = { Text(stringResource(id = tab.title)) },
-                     alwaysShowLabel = true,
-                     selected = currentTab == tab.route,
-                     onClick = {
-                         navController.navigate(tab.route) {
-                             navController.graph.startDestinationRoute?.let { route ->
-                                 popUpTo(route) {
-                                     saveState = true
-                                 }
-                             }
-                             launchSingleTop = true
-                             restoreState = true
-                         }
-                     }
-                 )
-             }
+    NavigationBar {
+        tabs.forEach { tab ->
+            NavigationBarItem(
+                    icon = {
+                        Icon(painter = painterResource(id = tab.icon), null)
+                    },
+                    label = { Text(stringResource(id = tab.title)) },
+                    alwaysShowLabel = true,
+                    selected = currentTab == tab.route,
+                    onClick = {
+                        navController.navigate(tab.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+            )
+        }
     }
 }
 //endregion
@@ -169,11 +169,11 @@ fun createDatePickerClickAction(context: Context, viewModel: SystemsViewModel): 
 
         // TODO Style this
         DatePickerDialog(
-            context,
-            listener,
-            current.get(Calendar.YEAR),
-            current.get(Calendar.MONTH),
-            current.get(Calendar.DAY_OF_MONTH)
+                context,
+                listener,
+                current.get(Calendar.YEAR),
+                current.get(Calendar.MONTH),
+                current.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
 }
