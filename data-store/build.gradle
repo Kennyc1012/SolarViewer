@@ -29,6 +29,8 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    namespace 'com.kennyc.data_store'
 }
 
 dependencies {

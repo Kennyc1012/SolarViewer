@@ -36,13 +36,14 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
-        useIR = true
         freeCompilerArgs = ['-Xjvm-default=compatibility']
     }
 
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
     }
+
+    namespace 'com.kennyc.solarviewer'
 }
 
 dependencies {
