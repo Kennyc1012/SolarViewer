@@ -7,19 +7,19 @@ import io.reactivex.rxjava3.subjects.Subject
 
 object RxUtils {
 
-    fun <T> Observable<T>.observeChain(): Observable<T> =
+    fun <T : Any> Observable<T>.observeChain(): Observable<T> =
         subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    fun <T> Subject<T>.observeChain(): Observable<T> =
+    fun <T : Any> Subject<T>.observeChain(): Observable<T> =
         subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    fun <T> Single<T>.observeChain(): Single<T> =
+    fun <T : Any> Single<T>.observeChain(): Single<T> =
         subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
     fun <T> Maybe<T>.observeChain(): Maybe<T> =
         subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    fun <T> Flowable<T>.observeChain(): Flowable<T> =
+    fun <T : Any> Flowable<T>.observeChain(): Flowable<T> =
         subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
     fun Completable.observeChain(): Completable =
