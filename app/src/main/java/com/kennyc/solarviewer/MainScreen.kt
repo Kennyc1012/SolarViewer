@@ -11,7 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -49,7 +52,11 @@ fun MainScreen(
     val systems by viewModel.systems.subscribeAsState(emptyList())
     val selectedSystem by viewModel.selectedSystem.subscribeAsState(EMPTY_SYSTEM)
     val date by viewModel.selectedDate.subscribeAsState(viewModel.currentTime)
-    val dateClick = createDatePickerClickAction(LocalContext.current, viewModel)
+    val openDialog = remember { mutableStateOf(false) }
+    createDatePickerClickAction(openDialog, viewModel)
+    val dateClick = {
+        openDialog.value = true
+    }
 
     Scaffold(topBar = { TopBar(systems, selectedSystem, date, dateClick) },
             bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
@@ -151,30 +158,32 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
 //endregion
 
 //region DatePicker
-fun createDatePickerClickAction(context: Context, viewModel: SystemsViewModel): () -> Unit {
-    return {
-        val listener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
-            val cal = Calendar.getInstance().apply {
-                set(Calendar.MONTH, month)
-                set(Calendar.YEAR, year)
-                set(Calendar.DAY_OF_MONTH, day)
-            }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun createDatePickerClickAction(openDialogState: MutableState<Boolean>, viewModel: SystemsViewModel) {
+    val current = Calendar.getInstance().apply {
+        time = viewModel.currentTime
+    }
 
-            viewModel.setNewDate(cal.time)
-        }
+    if (openDialogState.value) {
+        val datePickerState = rememberDatePickerState(initialDisplayedMonthMillis = current.timeInMillis)
 
-        val current = Calendar.getInstance().apply {
-            time = viewModel.currentTime
-        }
-
-        // TODO Style this
         DatePickerDialog(
-                context,
-                listener,
-                current.get(Calendar.YEAR),
-                current.get(Calendar.MONTH),
-                current.get(Calendar.DAY_OF_MONTH)
-        ).show()
+                onDismissRequest = {
+                    openDialogState.value = false
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        openDialogState.value = false
+                        datePickerState.selectedDateMillis?.let {
+                            viewModel.setNewDate(Date(it))
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.button_ok))
+                    }
+                }) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 //endregion
