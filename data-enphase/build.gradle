@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -24,9 +25,13 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.kennyc.data_enphase'
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
+    implementation libs.core.ktx
     implementation libs.room.runtime
     implementation libs.room.ktx
     implementation libs.room.rxjava3

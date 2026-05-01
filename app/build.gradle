@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -36,6 +37,9 @@ android {
     }
 
     namespace 'com.kennyc.solarviewer'
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
@@ -46,6 +50,8 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach
 
 dependencies {
     implementation libs.appcompat
+    implementation libs.core.ktx
+    implementation libs.material3
     implementation libs.mpchart
     implementation libs.rxjava
     implementation libs.rxandroid
@@ -57,6 +63,7 @@ dependencies {
     implementation libs.compose.runtime.livedata
     implementation libs.compose.runtime.rxjava3
     implementation libs.compose.material3
+    implementation libs.compose.material.icons.core
 
     implementation libs.activity.compose
     implementation libs.lifecycle.runtime.ktx

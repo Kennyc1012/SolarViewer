@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -22,9 +23,13 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.kennyc.data_store'
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
+    implementation libs.core.ktx
     implementation libs.datastore
     implementation libs.datastore.core
     implementation libs.datastore.preferences

@@ -1,15 +1,22 @@
 package com.kennyc.solarviewer
 
-import android.app.DatePickerDialog
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.*
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -19,7 +26,6 @@ import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,7 +44,8 @@ import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
 import com.kennyc.solarviewer.ui.dateFormatter
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 //region MainScreen
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,10 +98,10 @@ fun MainScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun TopBar(
-        systems: List<SolarSystem> = emptyList(),
-        selectedSystem: SolarSystem = EMPTY_SYSTEM,
-        date: Date,
-        dateButtonClick: () -> Unit = {}
+    systems: List<SolarSystem> = emptyList(),
+    selectedSystem: SolarSystem = EMPTY_SYSTEM,
+    date: Date,
+    dateButtonClick: () -> Unit = {}
 ) {
     if (systems.isNotEmpty() && selectedSystem != EMPTY_SYSTEM) {
         val selectedIndex = systems.indexOfFirst {

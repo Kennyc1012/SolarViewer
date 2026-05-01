@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -23,8 +24,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.kennyc.solarviewer.data'
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
+    implementation libs.core.ktx
     implementation libs.rxjava
 }
