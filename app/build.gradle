@@ -1,21 +1,22 @@
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
-    id 'kotlin-kapt'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    compileSdk compile_sdk
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     buildFeatures {
         viewBinding true
         compose true
+        buildConfig true
     }
 
     defaultConfig {
         applicationId "com.kennyc.solarviewer"
-        minSdkVersion min_sdk
-        targetSdkVersion target_sdk
+        minSdkVersion libs.versions.minSdk.get().toInteger()
+        targetSdkVersion libs.versions.targetSdk.get().toInteger()
         versionCode 1
         versionName "1.0"
         buildConfigField "String", "APP_ID", project.APP_ID
@@ -30,46 +31,44 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs = ['-Xjvm-default=compatibility']
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.2"
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     namespace 'com.kennyc.solarviewer'
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile).configureEach {
+    compilerOptions {
+        freeCompilerArgs.addAll('-Xjvm-default=all-compatibility')
+    }
+}
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
-    implementation "io.reactivex.rxjava3:rxjava:$rx"
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation libs.appcompat
+    implementation libs.mpchart
+    implementation libs.rxjava
+    implementation libs.rxandroid
 
     // Compose
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation("androidx.compose.material3:material3:1.1.0-alpha06")
-    implementation "androidx.compose.ui:ui-tooling:$compose_version"
-    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
-    implementation 'androidx.activity:activity-compose:1.6.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
-    implementation 'androidx.navigation:navigation-compose:2.6.0-alpha05'
-    implementation("androidx.compose.runtime:runtime-rxjava3:$compose_version")
+    implementation platform(libs.compose.bom)
+    implementation libs.compose.ui
+    implementation libs.compose.ui.tooling
+    implementation libs.compose.runtime.livedata
+    implementation libs.compose.runtime.rxjava3
+    implementation libs.compose.material3
 
-    //DAGGER
-    implementation "com.google.dagger:dagger:$dagger"
-    kapt "com.google.dagger:dagger-compiler:$dagger"
+    implementation libs.activity.compose
+    implementation libs.lifecycle.runtime.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.compose
+    implementation libs.navigation.compose
 
-    // MODULES
+    // Dagger
+    implementation libs.dagger
+    ksp libs.dagger.compiler
+
+    // Modules
     api project(':data')
     api project(':data-enphase')
     api project(':data-store')

@@ -1,6 +1,23 @@
-include ':data-store'
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
 rootProject.name = "SolarViewer"
 include ':app'
 include ':api-enphase'
 include ':data'
 include ':data-enphase'
+include ':data-store'
