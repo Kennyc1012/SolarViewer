@@ -82,3 +82,4 @@ lint/tmp/
 gradle.properties
 /app/.idea
 /app/.idea
+/.claude
