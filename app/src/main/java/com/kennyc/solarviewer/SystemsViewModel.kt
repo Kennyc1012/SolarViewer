@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.SolarRepository
+import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.data.model.SolarSystem
 import com.kennyc.solarviewer.utils.RxUtils.observeChain
 import io.reactivex.rxjava3.core.Observable
@@ -28,7 +29,7 @@ class SystemsViewModel @Inject constructor(
     val selectedDate = repo.selectedDate()
 
     init {
-        val d =localSettings
+        val d = localSettings
             .getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
             .toObservable()
             .flatMap { lastUsed ->
@@ -43,7 +44,7 @@ class SystemsViewModel @Inject constructor(
                                     s.id == id
                                 }
                                 // If not found return first item
-                            } ?: systems.first()
+                            } ?: systems.firstOrNull() ?: EMPTY_SYSTEM
                     }
             }.observeChain()
             .subscribe {

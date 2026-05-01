@@ -21,6 +21,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.BehaviorSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.emptyList
 import kotlin.math.abs
 
 private const val TAG = "SolarRepository"
@@ -66,9 +67,12 @@ class EnphaseSolarRepository(
         // TODO force refresh of systems manually and based on time
         return dao.getSystems()
             .flatMap {
-                if (it.isNullOrEmpty()) {
+                if (it.isEmpty()) {
                     logger.v(TAG, "No items present, fetching from API")
                     fetchSystems()
+                        .onErrorReturn {
+                            emptyList()
+                        }
                 } else {
                     Observable.just(it)
                 }
@@ -242,6 +246,7 @@ class EnphaseSolarRepository(
     private fun fetchSystems(): Observable<List<RoomSolarSystem>> {
         return api.getSystems()
             .subscribeOn(Schedulers.io())
+            .onErrorResumeNext { Single.error { convertException(it) } }
             .map { response ->
                 val apiSystems = response.systems
                     .map { SolarSystem(it.id, it.name, toSystemStatus(it.status)) }
