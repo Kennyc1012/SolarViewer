@@ -31,5 +31,5 @@ android {
 
 dependencies {
     implementation libs.core.ktx
-    implementation libs.rxjava
+    implementation libs.coroutines.core
 }

@@ -55,15 +55,13 @@ dependencies {
     implementation libs.core.ktx
     implementation libs.material3
     implementation libs.mpchart
-    implementation libs.rxjava
-    implementation libs.rxandroid
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
 
     // Compose
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
     implementation libs.compose.ui.tooling
-    implementation libs.compose.runtime.livedata
-    implementation libs.compose.runtime.rxjava3
     implementation libs.compose.material3
     implementation libs.compose.material.icons.core
 
@@ -71,7 +69,8 @@ dependencies {
     implementation libs.okhttp
     implementation libs.activity.compose
     implementation libs.lifecycle.runtime.ktx
-    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.compose
+    implementation libs.lifecycle.viewmodel.ktx
     implementation libs.lifecycle.viewmodel.compose
     implementation libs.navigation.compose
 

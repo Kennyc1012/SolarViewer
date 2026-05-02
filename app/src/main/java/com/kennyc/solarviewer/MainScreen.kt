@@ -22,8 +22,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rxjava3.subscribeAsState
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -56,9 +56,9 @@ fun MainScreen(
         viewModel: SystemsViewModel
 ) {
     val navController = rememberNavController()
-    val systems by viewModel.systems.subscribeAsState(emptyList())
-    val selectedSystem by viewModel.selectedSystem.subscribeAsState(EMPTY_SYSTEM)
-    val date by viewModel.selectedDate.subscribeAsState(viewModel.currentTime)
+    val systems by viewModel.systems.collectAsStateWithLifecycle(emptyList())
+    val selectedSystem by viewModel.selectedSystem.collectAsStateWithLifecycle()
+    val date by viewModel.selectedDate.collectAsStateWithLifecycle()
     val openDialog = remember { mutableStateOf(false) }
     createDatePickerClickAction(openDialog, viewModel)
     val dateClick = {

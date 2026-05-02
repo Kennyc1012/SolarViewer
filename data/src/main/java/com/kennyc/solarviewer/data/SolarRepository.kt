@@ -1,39 +1,43 @@
 package com.kennyc.solarviewer.data
 
-import com.kennyc.solarviewer.data.model.*
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
-import java.util.*
+import com.kennyc.solarviewer.data.model.ConsumptionStats
+import com.kennyc.solarviewer.data.model.ProductionStats
+import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.data.model.SolarSystemReport
+import com.kennyc.solarviewer.data.model.SolarSystemSummary
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import java.util.Date
 
 interface SolarRepository {
 
-    fun getSolarSystems(): Observable<List<SolarSystem>>
+    fun getSolarSystems(): Flow<List<SolarSystem>>
 
-    fun getSystemSummary(solarSystem: SolarSystem): Single<SolarSystemSummary>
+    suspend fun getSystemSummary(solarSystem: SolarSystem): SolarSystemSummary
 
-    fun getProductionStats(
+    suspend fun getProductionStats(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<List<ProductionStats>>
+    ): List<ProductionStats>
 
-    fun getConsumptionStats(
+    suspend fun getConsumptionStats(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<List<ConsumptionStats>>
+    ): List<ConsumptionStats>
 
-    fun getSystemReport(
+    suspend fun getSystemReport(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<SolarSystemReport>
+    ): SolarSystemReport
 
-    fun selectedSystem(): Observable<SolarSystem>
+    fun selectedSystem(): StateFlow<SolarSystem>
 
-    fun selectedDate(): Observable<Date>
+    fun selectedDate(): StateFlow<Date>
 
-   var currentSystem: SolarSystem?
+    var currentSystem: SolarSystem?
 
-   var currentDate: Date?
+    var currentDate: Date?
 }

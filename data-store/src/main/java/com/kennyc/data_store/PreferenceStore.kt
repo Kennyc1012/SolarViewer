@@ -1,99 +1,112 @@
 package com.kennyc.data_store
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.rxjava3.RxPreferenceDataStoreBuilder
+import androidx.datastore.preferences.preferencesDataStore
 import com.kennyc.api_enphase.auth.TokenStore
 import com.kennyc.solarviewer.data.LocalSettings
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.atomic.AtomicReference
 
-@ExperimentalCoroutinesApi
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore("PreferenceStore")
+
 class PreferenceStore(context: Context) : LocalSettings, TokenStore {
 
-    private val store = RxPreferenceDataStoreBuilder(context, "PreferenceStore")
-        .setIoScheduler(Schedulers.io())
-        .build()
+    private val store: DataStore<Preferences> = context.applicationContext.dataStore
 
-    override fun store(key: String, value: String): Completable {
-        return store.updateDataAsync {
-            val prefs = it.toMutablePreferences()
-            prefs[stringPreferencesKey(key)] = value
-            Single.just(prefs)
-        }.ignoreElement()
-            .onErrorComplete()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private data class Snapshot(val accessToken: String, val refreshToken: String)
+
+    private val tokenSnapshot = AtomicReference(Snapshot("", ""))
+
+    init {
+        // Prime the cache synchronously so the first network request has a token.
+        runBlocking {
+            val prefs = store.data.first()
+            tokenSnapshot.set(
+                Snapshot(
+                    prefs[KEY_ACCESS_TOKEN].orEmpty(),
+                    prefs[KEY_REFRESH_TOKEN].orEmpty()
+                )
+            )
+        }
+        store.data.onEach { prefs ->
+            tokenSnapshot.set(
+                Snapshot(
+                    prefs[KEY_ACCESS_TOKEN].orEmpty(),
+                    prefs[KEY_REFRESH_TOKEN].orEmpty()
+                )
+            )
+        }.launchIn(scope)
     }
 
-    override fun getStoredString(key: String, defaultValue: String): Single<String> {
-        return store.data().map {
-            when (val saved = it[stringPreferencesKey(key)]) {
-                null -> defaultValue
-                else -> saved
-            }
-        }.first(defaultValue)
+    override suspend fun store(key: String, value: String) {
+        store.edit { it[stringPreferencesKey(key)] = value }
     }
 
-    override fun saveTokens(
+    override suspend fun getStoredString(key: String, defaultValue: String): String {
+        return store.data.map { it[stringPreferencesKey(key)] ?: defaultValue }.first()
+    }
+
+    override suspend fun saveTokens(
         accessToken: String,
         refreshToken: String,
         expiresAtEpochSec: Long
-    ): Completable {
-        return store.updateDataAsync {
-            val prefs = it.toMutablePreferences()
-            prefs[KEY_ACCESS_TOKEN] = accessToken
-            prefs[KEY_REFRESH_TOKEN] = refreshToken
-            prefs[KEY_EXPIRES_AT] = expiresAtEpochSec
-            Single.just(prefs)
-        }.ignoreElement()
+    ) {
+        store.edit {
+            it[KEY_ACCESS_TOKEN] = accessToken
+            it[KEY_REFRESH_TOKEN] = refreshToken
+            it[KEY_EXPIRES_AT] = expiresAtEpochSec
+        }
+        tokenSnapshot.set(Snapshot(accessToken, refreshToken))
     }
 
-    override fun clearTokens(): Completable {
-        return store.updateDataAsync {
-            val prefs = it.toMutablePreferences()
-            prefs.remove(KEY_ACCESS_TOKEN)
-            prefs.remove(KEY_REFRESH_TOKEN)
-            prefs.remove(KEY_EXPIRES_AT)
-            prefs.remove(KEY_OAUTH_STATE)
-            Single.just(prefs)
-        }.ignoreElement()
+    override suspend fun clearTokens() {
+        store.edit {
+            it.remove(KEY_ACCESS_TOKEN)
+            it.remove(KEY_REFRESH_TOKEN)
+            it.remove(KEY_EXPIRES_AT)
+            it.remove(KEY_OAUTH_STATE)
+        }
+        tokenSnapshot.set(Snapshot("", ""))
     }
 
     override fun accessTokenBlocking(): String? =
-        store.data().map { it[KEY_ACCESS_TOKEN] ?: "" }.blockingFirst().takeIf { it.isNotEmpty() }
+        tokenSnapshot.get().accessToken.takeIf { it.isNotEmpty() }
 
     override fun refreshTokenBlocking(): String? =
-        store.data().map { it[KEY_REFRESH_TOKEN] ?: "" }.blockingFirst().takeIf { it.isNotEmpty() }
+        tokenSnapshot.get().refreshToken.takeIf { it.isNotEmpty() }
 
-    override fun accessToken(): Single<String> =
-        store.data().map { it[KEY_ACCESS_TOKEN] ?: "" }.first("")
+    override fun accessToken(): Flow<String> =
+        store.data.map { it[KEY_ACCESS_TOKEN].orEmpty() }
 
-    override fun refreshToken(): Single<String> =
-        store.data().map { it[KEY_REFRESH_TOKEN] ?: "" }.first("")
+    override fun refreshToken(): Flow<String> =
+        store.data.map { it[KEY_REFRESH_TOKEN].orEmpty() }
 
-    override fun expiresAtEpochSec(): Single<Long> =
-        store.data().map { it[KEY_EXPIRES_AT] ?: 0L }.first(0L)
+    override fun expiresAtEpochSec(): Flow<Long> =
+        store.data.map { it[KEY_EXPIRES_AT] ?: 0L }
 
-    override fun storeOAuthState(state: String): Completable {
-        return store.updateDataAsync {
-            val prefs = it.toMutablePreferences()
-            prefs[KEY_OAUTH_STATE] = state
-            Single.just(prefs)
-        }.ignoreElement()
+    override suspend fun storeOAuthState(state: String) {
+        store.edit { it[KEY_OAUTH_STATE] = state }
     }
 
-    override fun consumeOAuthState(): Single<String> {
-        return store.data().map { it[KEY_OAUTH_STATE] ?: "" }.first("")
-            .flatMap { current ->
-                store.updateDataAsync {
-                    val prefs = it.toMutablePreferences()
-                    prefs.remove(KEY_OAUTH_STATE)
-                    Single.just(prefs)
-                }.map { current }
-            }
-            .onErrorReturnItem("")
+    override suspend fun consumeOAuthState(): String {
+        val current = store.data.map { it[KEY_OAUTH_STATE].orEmpty() }.first()
+        store.edit { it.remove(KEY_OAUTH_STATE) }
+        return current
     }
 
     private companion object {

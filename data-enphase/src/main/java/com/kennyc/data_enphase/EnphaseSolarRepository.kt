@@ -11,17 +11,31 @@ import com.kennyc.data_enphase.db.model.RoomSolarSystem
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.Logger
 import com.kennyc.solarviewer.data.SolarRepository
-import com.kennyc.solarviewer.data.model.*
+import com.kennyc.solarviewer.data.model.ConsumptionStats
+import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
+import com.kennyc.solarviewer.data.model.ProductionStats
+import com.kennyc.solarviewer.data.model.SolarSystem
+import com.kennyc.solarviewer.data.model.SolarSystemReport
+import com.kennyc.solarviewer.data.model.SolarSystemSummary
+import com.kennyc.solarviewer.data.model.SystemStatus
 import com.kennyc.solarviewer.data.model.exception.InvalidDateRangeException
 import com.kennyc.solarviewer.data.model.exception.RateLimitException
-import com.kennyc.solarviewer.data.rx.CompletableSubscriber
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
-import io.reactivex.rxjava3.subjects.BehaviorSubject
-import java.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import java.util.Date
 import java.util.concurrent.TimeUnit
-import kotlin.collections.emptyList
 import kotlin.math.abs
 
 private const val TAG = "SolarRepository"
@@ -45,190 +59,172 @@ class EnphaseSolarRepository(
         "solar_viewer.db"
     ).build().dao()
 
-    private val systemSubject: BehaviorSubject<SolarSystem> =
-        BehaviorSubject.createDefault(EMPTY_SYSTEM)
+    private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val dateSubject: BehaviorSubject<Date> =
-        BehaviorSubject.createDefault(clock.currentDate())
+    private val systemFlow = MutableStateFlow<SolarSystem>(EMPTY_SYSTEM)
+    private val dateFlow = MutableStateFlow<Date>(clock.currentDate())
 
     override var currentSystem: SolarSystem? = null
         set(value) {
             field = value
-            systemSubject.onNext(value ?: EMPTY_SYSTEM)
+            systemFlow.value = value ?: EMPTY_SYSTEM
         }
 
     override var currentDate: Date? = null
         set(value) {
             field = value
-            dateSubject.onNext(value ?: clock.currentDate())
+            dateFlow.value = value ?: clock.currentDate()
         }
 
-    override fun getSolarSystems(): Observable<List<SolarSystem>> {
-        // TODO force refresh of systems manually and based on time
-        return dao.getSystems()
-            .flatMap {
-                if (it.isEmpty()) {
-                    logger.v(TAG, "No items present, fetching from API")
-                    fetchSystems()
-                        .onErrorReturn {
-                            emptyList()
-                        }
-                } else {
-                    Observable.just(it)
-                }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    override fun getSolarSystems() = dao.getSystems()
+        .flatMapLatest { rooms ->
+            if (rooms.isEmpty()) {
+                logger.v(TAG, "No items present, fetching from API")
+                flow { emit(fetchAndStoreSystems()) }.catch { emit(emptyList()) }
+            } else {
+                flow { emit(rooms) }
             }
-            .map { it.map { system -> SolarSystem(system.id, system.name, SystemStatus.NORMAL) } }
+        }
+        .map { rooms -> rooms.map { SolarSystem(it.id, it.name, SystemStatus.NORMAL) } }
+
+    private suspend fun fetchAndStoreSystems(): List<RoomSolarSystem> {
+        return try {
+            val response = api.getSystems()
+            val now = System.currentTimeMillis()
+            val rooms = response.systems
+                .map { SolarSystem(it.id, it.name, toSystemStatus(it.status)) }
+                .map { RoomSolarSystem(it.id, it.name, now, it.status) }
+            repoScope.launch { dao.insertSystems(rooms) }
+            rooms
+        } catch (t: Throwable) {
+            throw convertException(t)
+        }
     }
 
-    override fun getSystemSummary(solarSystem: SolarSystem): Single<SolarSystemSummary> {
+    override suspend fun getSystemSummary(solarSystem: SolarSystem): SolarSystemSummary {
         val key = solarSystem.id + KEY_SYSTEM_SUMMARY
         val cached = cache.get(key)
-        if (cached is SolarSystemSummary) return Single.just(cached)
+        if (cached is SolarSystemSummary) return cached
 
-        return api.getSystemSummary(solarSystem.id)
-            .map {
-                SolarSystemSummary(
-                    it.systemId,
-                    it.numModules,
-                    it.sizeInWatts,
-                    it.currentPowerInWatts,
-                    it.energyTodayInWatts,
-                    it.energyLifetimeInWatts,
-                    toSystemStatus(it.status),
-                    Date(TimeUnit.SECONDS.toMillis(it.lastReportTS))
-                )
-            }
-            .doOnSuccess { cache.put(key, it) }
-            .onErrorResumeNext { Single.error(convertException(it)) }
+        return try {
+            val it = api.getSystemSummary(solarSystem.id)
+            SolarSystemSummary(
+                it.systemId,
+                it.numModules,
+                it.sizeInWatts,
+                it.currentPowerInWatts,
+                it.energyTodayInWatts,
+                it.energyLifetimeInWatts,
+                toSystemStatus(it.status),
+                Date(TimeUnit.SECONDS.toMillis(it.lastReportTS))
+            ).also { cache.put(key, it) }
+        } catch (t: Throwable) {
+            throw convertException(t)
+        }
     }
 
-    override fun getProductionStats(
+    override suspend fun getProductionStats(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<List<ProductionStats>> {
+    ): List<ProductionStats> {
         val startTimeInSeconds = TimeUnit.MILLISECONDS.toSeconds(startTime)
-
-        val endTimeInSeconds = when (endTime) {
-            null -> null
-            else -> TimeUnit.MILLISECONDS.toSeconds(endTime)
-        }
+        val endTimeInSeconds = endTime?.let { TimeUnit.MILLISECONDS.toSeconds(it) }
 
         val key =
             solarSystem.id + KEY_SYSTEM_PRODUCTION + ".START_$startTimeInSeconds.END_$endTimeInSeconds"
         val cached = cache.get(key)
-        var list: List<ProductionStats>? = null
-
         if (cached is List<*>) {
-            list = cached.filterIsInstance(ProductionStats::class.java)
+            val list = cached.filterIsInstance<ProductionStats>()
                 .takeIf { it.isNotEmpty() && it.size == cached.size }
+            if (list != null) return list
         }
 
-        return when (list) {
-            null ->
-                api.getProductionStats(solarSystem.id, startTimeInSeconds, endTimeInSeconds)
-                    .map { response ->
-                        response.stats.map { ProductionStats(it.endingAtTS, it.powerCreatedInWh) }
-                    }
-                    .doOnSuccess { cache.put(key, it) }
-                    .onErrorResumeNext { Single.error(convertException(it)) }
-
-            else -> Single.just(list)
+        return try {
+            val response = api.getProductionStats(solarSystem.id, startTimeInSeconds, endTimeInSeconds)
+            response.stats.map { ProductionStats(it.endingAtTS, it.powerCreatedInWh) }
+                .also { cache.put(key, it) }
+        } catch (t: Throwable) {
+            throw convertException(t)
         }
     }
 
-    override fun getConsumptionStats(
+    override suspend fun getConsumptionStats(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<List<ConsumptionStats>> {
+    ): List<ConsumptionStats> {
         val startTimeInSeconds = TimeUnit.MILLISECONDS.toSeconds(startTime)
-
-        val endTimeInSeconds = when (endTime) {
-            null -> null
-            else -> TimeUnit.MILLISECONDS.toSeconds(endTime)
-        }
+        val endTimeInSeconds = endTime?.let { TimeUnit.MILLISECONDS.toSeconds(it) }
 
         val key =
             solarSystem.id + KEY_SYSTEM_CONSUMPTION + ".START_$startTimeInSeconds.END_$endTimeInSeconds"
         val cached = cache.get(key)
-        var list: List<ConsumptionStats>? = null
-
         if (cached is List<*>) {
-            list = cached.filterIsInstance(ConsumptionStats::class.java)
+            val list = cached.filterIsInstance<ConsumptionStats>()
                 .takeIf { it.isNotEmpty() && it.size == cached.size }
+            if (list != null) return list
         }
 
-        return when (list) {
-            null ->
-                api.getConsumptionStats(solarSystem.id, startTimeInSeconds, endTimeInSeconds)
-                    .map { response ->
-                        response.stats.map { ConsumptionStats(it.endingAtTS, it.powerConsumedInWh) }
-                    }
-                    .doOnSuccess { cache.put(key, it) }
-                    .onErrorResumeNext { Single.error(convertException(it)) }
-
-            else -> Single.just(list)
+        return try {
+            val response = api.getConsumptionStats(solarSystem.id, startTimeInSeconds, endTimeInSeconds)
+            response.stats.map { ConsumptionStats(it.endingAtTS, it.powerConsumedInWh) }
+                .also { cache.put(key, it) }
+        } catch (t: Throwable) {
+            throw convertException(t)
         }
     }
 
-    override fun getSystemReport(
+    override suspend fun getSystemReport(
         solarSystem: SolarSystem,
         startTime: Long,
         endTime: Long?
-    ): Single<SolarSystemReport> {
-        return getConsumptionStats(solarSystem, startTime, endTime)
-            .zipWith(getProductionStats(solarSystem, startTime, endTime),
-                { consumption, production ->
-                    require(consumption.size == production.size) { "Sizes are not the same" }
+    ): SolarSystemReport = coroutineScope {
+        val (consumption, production) = listOf(
+            async { getConsumptionStats(solarSystem, startTime, endTime) },
+            async { getProductionStats(solarSystem, startTime, endTime) }
+        ).awaitAll().let { it[0] as List<ConsumptionStats> to it[1] as List<ProductionStats> }
 
-                    var totalImport = 0
-                    var totalExport = 0
-                    for (i in consumption.indices) {
-                        val consumed = consumption[i]
-                        val produced = production[i]
+        require(consumption.size == production.size) { "Sizes are not the same" }
 
-                        // Each item should have the same end time
-                        if (consumed.endingAtTS != produced.endingAtTS) {
-                            logger.w(
-                                TAG,
-                                "Items at index $i did not have the same time. consumed: ${consumed.endingAtTS}, produced: ${produced.endingAtTS}"
-                            )
-                            break
-                        }
+        var totalImport = 0
+        var totalExport = 0
+        for (i in consumption.indices) {
+            val consumed = consumption[i]
+            val produced = production[i]
+            if (consumed.endingAtTS != produced.endingAtTS) {
+                logger.w(
+                    TAG,
+                    "Items at index $i did not have the same time. consumed: ${consumed.endingAtTS}, produced: ${produced.endingAtTS}"
+                )
+                break
+            }
+            val net = produced.powerCreatedInWh - consumed.powerConsumedInWh
+            if (net > 0) totalExport += net else totalImport += abs(net)
+        }
 
-                        val net = produced.powerCreatedInWh - consumed.powerConsumedInWh
-                        if (net > 0) {
-                            totalExport += net
-                        } else {
-                            totalImport += abs(net)
-                        }
-                    }
-
-                    SolarSystemReport(
-                        production.sumOf { it.powerCreatedInWh },
-                        consumption.sumOf { it.powerConsumedInWh },
-                        totalExport,
-                        totalImport,
-                        Date(TimeUnit.SECONDS.toMillis(consumption.last().endingAtTS))
-                    )
-                })
+        SolarSystemReport(
+            production.sumOf { it.powerCreatedInWh },
+            consumption.sumOf { it.powerConsumedInWh },
+            totalExport,
+            totalImport,
+            Date(TimeUnit.SECONDS.toMillis(consumption.last().endingAtTS))
+        )
     }
 
-    override fun selectedSystem(): Observable<SolarSystem> = systemSubject.share()
+    override fun selectedSystem(): StateFlow<SolarSystem> = systemFlow.asStateFlow()
 
-    override fun selectedDate(): Observable<Date> = dateSubject.share()
+    override fun selectedDate(): StateFlow<Date> = dateFlow.asStateFlow()
 
-    private fun toSystemStatus(value: String): SystemStatus {
-        return when (value) {
-            "comm" -> SystemStatus.COMMUNICATION_ERROR
-            "power" -> SystemStatus.PRODUCTION_ERROR
-            "meter", "meter_issue" -> SystemStatus.METER_ERROR
-            "micro" -> SystemStatus.MICROINVERTER_ERROR
-            "battery" -> SystemStatus.BATTERY_ERROR
-            "normal" -> SystemStatus.NORMAL
-            else -> SystemStatus.UNKNOWN
-        }
+    private fun toSystemStatus(value: String): SystemStatus = when (value) {
+        "comm" -> SystemStatus.COMMUNICATION_ERROR
+        "power" -> SystemStatus.PRODUCTION_ERROR
+        "meter", "meter_issue" -> SystemStatus.METER_ERROR
+        "micro" -> SystemStatus.MICROINVERTER_ERROR
+        "battery" -> SystemStatus.BATTERY_ERROR
+        "normal" -> SystemStatus.NORMAL
+        else -> SystemStatus.UNKNOWN
     }
 
     private fun convertException(exception: Throwable): Throwable {
@@ -239,25 +235,6 @@ class EnphaseSolarRepository(
                 else -> exception
             }
         }
-
         return exception
-    }
-
-    private fun fetchSystems(): Observable<List<RoomSolarSystem>> {
-        return api.getSystems()
-            .subscribeOn(Schedulers.io())
-            .onErrorResumeNext { Single.error { convertException(it) } }
-            .map { response ->
-                val apiSystems = response.systems
-                    .map { SolarSystem(it.id, it.name, toSystemStatus(it.status)) }
-
-                val currentTime = System.currentTimeMillis()
-                apiSystems.map { RoomSolarSystem(it.id, it.name, currentTime, it.status) }
-            }.toObservable()
-            .doOnNext {
-                dao.insertSystems(it)
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(CompletableSubscriber.stub())
-            }
     }
 }

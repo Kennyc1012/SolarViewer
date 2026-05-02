@@ -10,7 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rxjava3.subscribeAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -150,8 +150,8 @@ private fun generateBarData(
 
 @Composable
 fun DailyScreen(viewModel: DailyViewModel) {
-    val state by viewModel.state.subscribeAsState(LoadingState)
-    val selectedBarPoint by viewModel.selectedBarPoint.subscribeAsState(BarPoint.EMPTY_POINT)
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val selectedBarPoint by viewModel.selectedBarPoint.collectAsStateWithLifecycle()
     val refresh = { viewModel.refresh() }
     RefreshLifecycle(onRefresh = refresh)
 

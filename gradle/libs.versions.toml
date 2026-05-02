@@ -18,8 +18,7 @@ dagger = "2.59.2"
 retrofit = "3.0.0"
 okhttp = "5.3.2"
 
-rxjava = "3.1.12"
-rxandroid = "3.0.2"
+coroutines = "1.10.2"
 
 room = "2.8.4"
 datastore = "1.3.0-alpha08"
@@ -33,20 +32,19 @@ browser = "1.9.0"
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 mpchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpchart" }
 
-rxjava = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxjava" }
-rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroid" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
-compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
-compose-runtime-rxjava3 = { module = "androidx.compose.runtime:runtime-rxjava3" }
 
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
@@ -55,19 +53,16 @@ dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = 
 
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
-retrofit-adapter-rxjava3 = { module = "com.squareup.retrofit2:adapter-rxjava3", version.ref = "retrofit" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
-room-rxjava3 = { module = "androidx.room:room-rxjava3", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-core = { module = "androidx.datastore:datastore-core", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
-datastore-preferences-rxjava3 = { module = "androidx.datastore:datastore-preferences-rxjava3", version.ref = "datastore" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 browser = { module = "androidx.browser:browser", version.ref = "browser" }

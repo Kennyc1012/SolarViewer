@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rxjava3.subscribeAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -279,7 +279,7 @@ fun Content(
 //region HomeScreen
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
-    val state by viewModel.state.subscribeAsState(LoadingState)
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val refresh = {
         viewModel.refresh()
     }

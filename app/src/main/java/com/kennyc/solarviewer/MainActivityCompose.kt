@@ -5,20 +5,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rxjava3.subscribeAsState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.kennyc.solarviewer.auth.AuthState
 import com.kennyc.solarviewer.auth.EnphaseAuthManager
 import com.kennyc.solarviewer.auth.LoginScreen
 import com.kennyc.solarviewer.ui.AppTheme
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalComposeUiApi
@@ -31,35 +27,29 @@ class MainActivityCompose : ComponentActivity() {
 
     private val systemsViewModel: SystemsViewModel by viewModels { factory }
 
-    private val disposables = CompositeDisposable()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val app = applicationContext as SolarApp
         app.component.inject(this)
 
         super.onCreate(savedInstanceState)
 
-        disposables.add(
-            authManager.refreshAuthState()
-                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                .subscribe({}, {})
-        )
+        lifecycleScope.launch { authManager.refreshAuthState() }
 
         handleAuthIntent(intent)
 
         setContent {
             AppTheme {
-                val authState by authManager.state
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeAsState(initial = AuthState.Unknown)
+                val authState by authManager.state.collectAsStateWithLifecycle()
 
                 when (val s = authState) {
                     AuthState.Authorized -> MainScreen(factory, systemsViewModel)
                     is AuthState.Error -> LoginScreen(errorMessage = s.message) {
-                        authManager.startAuthorize(this)
+                        lifecycleScope.launch { authManager.startAuthorize(this@MainActivityCompose) }
                     }
                     AuthState.Unauthorized,
-                    AuthState.Unknown -> LoginScreen { authManager.startAuthorize(this) }
+                    AuthState.Unknown -> LoginScreen {
+                        lifecycleScope.launch { authManager.startAuthorize(this@MainActivityCompose) }
+                    }
                 }
             }
         }
@@ -71,18 +61,9 @@ class MainActivityCompose : ComponentActivity() {
         handleAuthIntent(intent)
     }
 
-    override fun onDestroy() {
-        disposables.clear()
-        super.onDestroy()
-    }
-
     private fun handleAuthIntent(intent: Intent?) {
         val data = intent?.data ?: return
         if (!authManager.isCallback(data)) return
-        disposables.add(
-            authManager.handleCallback(data)
-                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                .subscribe({}, {})
-        )
+        lifecycleScope.launch { authManager.handleCallback(data) }
     }
 }

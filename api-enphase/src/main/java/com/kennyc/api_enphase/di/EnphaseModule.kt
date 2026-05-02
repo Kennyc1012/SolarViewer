@@ -11,7 +11,6 @@ import dagger.Provides
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
@@ -37,7 +36,6 @@ class EnphaseModule {
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(AuthApi::class.java)
 
@@ -80,7 +78,6 @@ class EnphaseModule {
             .baseUrl("${BASE_URL}api/v4/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(EnphaseApi::class.java)
 

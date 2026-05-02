@@ -6,18 +6,19 @@ import androidx.browser.customtabs.CustomTabsIntent
 import com.kennyc.api_enphase.auth.AuthApi
 import com.kennyc.api_enphase.auth.TokenStore
 import com.kennyc.solarviewer.BuildConfig
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.subjects.BehaviorSubject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import okhttp3.Credentials
 import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
 
 sealed class AuthState {
-    object Unknown : AuthState()
-    object Unauthorized : AuthState()
-    object Authorized : AuthState()
+    data object Unknown : AuthState()
+    data object Unauthorized : AuthState()
+    data object Authorized : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -27,20 +28,17 @@ class EnphaseAuthManager @Inject constructor(
     private val tokenStore: TokenStore
 ) {
 
-    private val stateSubject = BehaviorSubject.createDefault<AuthState>(AuthState.Unknown)
-    val state: io.reactivex.rxjava3.core.Observable<AuthState> = stateSubject.hide()
+    private val _state = MutableStateFlow<AuthState>(AuthState.Unknown)
+    val state: StateFlow<AuthState> = _state.asStateFlow()
 
-    fun refreshAuthState(): Completable {
-        return tokenStore.accessToken().doOnSuccess { token ->
-            stateSubject.onNext(
-                if (token.isNotEmpty()) AuthState.Authorized else AuthState.Unauthorized
-            )
-        }.ignoreElement()
+    suspend fun refreshAuthState() {
+        val token = tokenStore.accessToken().first()
+        _state.value = if (token.isNotEmpty()) AuthState.Authorized else AuthState.Unauthorized
     }
 
-    fun startAuthorize(activity: Activity) {
+    suspend fun startAuthorize(activity: Activity) {
         val state = randomState()
-        tokenStore.storeOAuthState(state).blockingAwait()
+        tokenStore.storeOAuthState(state)
         val url = Uri.parse(AUTHORIZE_URL).buildUpon()
             .appendQueryParameter("response_type", "code")
             .appendQueryParameter("client_id", BuildConfig.CLIENT_ID)
@@ -56,44 +54,42 @@ class EnphaseAuthManager @Inject constructor(
         return uri.scheme == expected.scheme && uri.host == expected.host
     }
 
-    fun handleCallback(uri: Uri): Completable {
+    suspend fun handleCallback(uri: Uri) {
         val code = uri.getQueryParameter("code")
         val returnedState = uri.getQueryParameter("state")
         val error = uri.getQueryParameter("error")
         if (error != null) {
-            stateSubject.onNext(AuthState.Error(error))
-            return Completable.complete()
+            _state.value = AuthState.Error(error)
+            return
         }
         if (code.isNullOrEmpty() || returnedState.isNullOrEmpty()) {
-            stateSubject.onNext(AuthState.Error("missing code or state"))
-            return Completable.complete()
+            _state.value = AuthState.Error("missing code or state")
+            return
         }
-        return tokenStore.consumeOAuthState().flatMapCompletable { stored ->
-            if (stored.isEmpty() || stored != returnedState) {
-                stateSubject.onNext(AuthState.Error("state mismatch"))
-                Completable.complete()
-            } else {
-                exchangeCode(code)
-            }
+        val stored = tokenStore.consumeOAuthState()
+        if (stored.isEmpty() || stored != returnedState) {
+            _state.value = AuthState.Error("state mismatch")
+            return
         }
+        runCatching { exchangeCode(code) }
+            .onFailure { _state.value = AuthState.Error(it.message ?: "exchange failed") }
     }
 
-    private fun exchangeCode(code: String): Completable {
+    private suspend fun exchangeCode(code: String) {
         val basic = Credentials.basic(BuildConfig.CLIENT_ID, BuildConfig.CLIENT_SECRET)
-        return authApi.exchangeCode(
+        val resp = authApi.exchangeCode(
             basicAuth = basic,
             code = code,
             redirectUri = BuildConfig.REDIRECT_URI
-        ).flatMapCompletable { resp ->
-            val expiresAt = System.currentTimeMillis() / 1000L + resp.expiresIn
-            tokenStore.saveTokens(resp.accessToken, resp.refreshToken, expiresAt)
-                .doOnComplete { stateSubject.onNext(AuthState.Authorized) }
-        }.doOnError { stateSubject.onNext(AuthState.Error(it.message ?: "exchange failed")) }
+        )
+        val expiresAt = System.currentTimeMillis() / 1000L + resp.expiresIn
+        tokenStore.saveTokens(resp.accessToken, resp.refreshToken, expiresAt)
+        _state.value = AuthState.Authorized
     }
 
-    fun signOut(): Completable {
-        return tokenStore.clearTokens()
-            .doOnComplete { stateSubject.onNext(AuthState.Unauthorized) }
+    suspend fun signOut() {
+        tokenStore.clearTokens()
+        _state.value = AuthState.Unauthorized
     }
 
     private fun randomState(): String {

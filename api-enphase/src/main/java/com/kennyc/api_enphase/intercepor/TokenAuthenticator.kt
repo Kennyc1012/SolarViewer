@@ -2,6 +2,7 @@ package com.kennyc.api_enphase.intercepor
 
 import com.kennyc.api_enphase.auth.AuthApi
 import com.kennyc.api_enphase.auth.TokenStore
+import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Credentials
 import okhttp3.Request
@@ -32,22 +33,21 @@ class TokenAuthenticator(
 
             val refresh = tokenStore.refreshTokenBlocking() ?: return null
             val basic = Credentials.basic(clientId, clientSecret)
-            val refreshResponse = runCatching {
-                authApi.refresh(basic, refreshToken = refresh).execute()
-            }.getOrNull() ?: return null
 
-            if (!refreshResponse.isSuccessful) {
-                tokenStore.clearTokens().blockingAwait()
+            val refreshed = runCatching {
+                runBlocking { authApi.refresh(basic, refreshToken = refresh) }
+            }.getOrElse {
+                runBlocking { tokenStore.clearTokens() }
                 return null
             }
 
-            val body = refreshResponse.body() ?: return null
-            val expiresAt = System.currentTimeMillis() / 1000L + body.expiresIn
-            tokenStore.saveTokens(body.accessToken, body.refreshToken, expiresAt)
-                .blockingAwait()
+            val expiresAt = System.currentTimeMillis() / 1000L + refreshed.expiresIn
+            runBlocking {
+                tokenStore.saveTokens(refreshed.accessToken, refreshed.refreshToken, expiresAt)
+            }
 
             return response.request.newBuilder()
-                .header("Authorization", "Bearer ${body.accessToken}")
+                .header("Authorization", "Bearer ${refreshed.accessToken}")
                 .build()
         }
     }

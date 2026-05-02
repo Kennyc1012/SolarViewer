@@ -1,15 +1,17 @@
 package com.kennyc.solarviewer
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.data.model.SolarSystem
-import com.kennyc.solarviewer.utils.RxUtils.observeChain
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import java.util.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 class SystemsViewModel @Inject constructor(
@@ -18,50 +20,29 @@ class SystemsViewModel @Inject constructor(
     private val clock: Clock
 ) : ViewModel() {
 
-    private val disposables = CompositeDisposable()
-
     val currentTime: Date get() = clock.currentDate()
 
-    val systems: Observable<List<SolarSystem>> = repo.getSolarSystems()
+    val systems: Flow<List<SolarSystem>> = repo.getSolarSystems()
 
-    val selectedSystem = repo.selectedSystem()
+    val selectedSystem: StateFlow<SolarSystem> = repo.selectedSystem()
 
-    val selectedDate = repo.selectedDate()
+    val selectedDate: StateFlow<Date> = repo.selectedDate()
 
     init {
-        val d = localSettings
-            .getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
-            .toObservable()
-            .flatMap { lastUsed ->
-                repo.getSolarSystems()
-                    .map { systems ->
-                        lastUsed
-                            // Get last stored system
-                            .takeIf { id -> id != DEFAULT_VALUE }
-                            ?.let { id ->
-                                // Return the system with the same id
-                                systems.firstOrNull { s ->
-                                    s.id == id
-                                }
-                                // If not found return first item
-                            } ?: systems.firstOrNull() ?: EMPTY_SYSTEM
-                    }
-            }.observeChain()
-            .subscribe {
-                repo.currentSystem = it
-            }
-
+        viewModelScope.launch {
+            val lastUsed = localSettings.getStoredString(KEY_LAST_USED_SYSTEM, DEFAULT_VALUE)
+            val systems = repo.getSolarSystems().first()
+            val pick = lastUsed.takeIf { it != DEFAULT_VALUE }
+                ?.let { id -> systems.firstOrNull { it.id == id } }
+                ?: systems.firstOrNull()
+                ?: EMPTY_SYSTEM
+            repo.currentSystem = pick
+        }
         setNewDate(currentTime)
-        disposables.add(d)
     }
 
     fun setNewDate(newDate: Date) {
         repo.currentDate = newDate
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disposables.clear()
     }
 }
 

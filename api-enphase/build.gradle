@@ -36,8 +36,7 @@ dependencies {
     implementation libs.okhttp.logging.interceptor
     implementation libs.retrofit
     implementation libs.retrofit.converter.gson
-    implementation libs.retrofit.adapter.rxjava3
-    implementation libs.rxjava
+    implementation libs.coroutines.core
 
     // Dagger
     implementation libs.dagger

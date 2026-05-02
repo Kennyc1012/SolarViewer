@@ -1,25 +1,26 @@
 package com.kennyc.api_enphase.auth
 
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
+import kotlinx.coroutines.flow.Flow
 
 interface TokenStore {
 
-    fun saveTokens(accessToken: String, refreshToken: String, expiresAtEpochSec: Long): Completable
+    suspend fun saveTokens(accessToken: String, refreshToken: String, expiresAtEpochSec: Long)
 
-    fun clearTokens(): Completable
+    suspend fun clearTokens()
 
+    /** Synchronous snapshot read for OkHttp interceptor. Backed by an in-memory cache. */
     fun accessTokenBlocking(): String?
 
+    /** Synchronous snapshot read for OkHttp authenticator. Backed by an in-memory cache. */
     fun refreshTokenBlocking(): String?
 
-    fun accessToken(): Single<String>
+    fun accessToken(): Flow<String>
 
-    fun refreshToken(): Single<String>
+    fun refreshToken(): Flow<String>
 
-    fun expiresAtEpochSec(): Single<Long>
+    fun expiresAtEpochSec(): Flow<Long>
 
-    fun storeOAuthState(state: String): Completable
+    suspend fun storeOAuthState(state: String)
 
-    fun consumeOAuthState(): Single<String>
+    suspend fun consumeOAuthState(): String
 }

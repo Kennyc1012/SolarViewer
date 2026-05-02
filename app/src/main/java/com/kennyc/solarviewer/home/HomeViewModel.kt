@@ -1,17 +1,22 @@
 package com.kennyc.solarviewer.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
 import com.kennyc.solarviewer.utils.ContentState
 import com.kennyc.solarviewer.utils.ErrorState
 import com.kennyc.solarviewer.utils.LoadingState
-import com.kennyc.solarviewer.utils.RxUtils.observeChain
 import com.kennyc.solarviewer.utils.UiState
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -19,44 +24,35 @@ class HomeViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock
 ) : ViewModel() {
-    private var disposable: Disposable? = null
-    private val uiSubject: PublishSubject<UiState> = PublishSubject.create()
 
-    val state: Observable<UiState> = uiSubject.defaultIfEmpty(LoadingState)
+    private val _state = MutableStateFlow<UiState>(LoadingState)
+    val state: StateFlow<UiState> = _state.asStateFlow()
+
+    private var job: Job? = null
 
     fun refresh() {
-        disposable?.dispose()
-
-        val dateObservable = repo.selectedDate()
-            .doOnNext {
-                uiSubject.onNext(LoadingState)
-            }
-
-        val systemObservable = repo.selectedSystem()
-            .filter { it != EMPTY_SYSTEM }
-            .doOnNext {
-                uiSubject.onNext(LoadingState)
-            }
-
-        disposable = Observable.combineLatest(dateObservable, systemObservable,
-            { date, system ->
-                val start = clock.midnight(date)
-                val end = (start + TimeUnit.HOURS.toMillis(24))
-                    .takeIf { time -> !clock.isInFuture(time) }
-
-                repo.getSystemReport(system, start, end)
-            }).flatMapSingle { it }
-            .observeChain()
-            .map {
-                val state: UiState = ContentState(it)
-                state
-            }
-            .onErrorReturn { ErrorState(it) }
-            .subscribe { state -> uiSubject.onNext(state) }
+        job?.cancel()
+        job = viewModelScope.launch {
+            combine(
+                repo.selectedDate(),
+                repo.selectedSystem().filter { it != EMPTY_SYSTEM }
+            ) { date, system -> date to system }
+                .collectLatest { (date, system) ->
+                    _state.value = LoadingState
+                    val start = clock.midnight(date)
+                    val end = (start + TimeUnit.HOURS.toMillis(24))
+                        .takeIf { time -> !clock.isInFuture(time) }
+                    _state.value = try {
+                        ContentState(repo.getSystemReport(system, start, end))
+                    } catch (t: Throwable) {
+                        ErrorState(t)
+                    }
+                }
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
-        disposable?.dispose()
+        job?.cancel()
     }
 }

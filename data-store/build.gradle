@@ -33,7 +33,7 @@ dependencies {
     implementation libs.datastore
     implementation libs.datastore.core
     implementation libs.datastore.preferences
-    implementation libs.datastore.preferences.rxjava3
+    implementation libs.coroutines.core
 
     api project(':data')
     api project(':api-enphase')
