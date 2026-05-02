@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DatePicker
@@ -18,18 +19,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -44,7 +45,6 @@ import com.kennyc.solarviewer.home.HomeScreen
 import com.kennyc.solarviewer.home.HomeViewModel
 import com.kennyc.solarviewer.ui.NavTab
 import com.kennyc.solarviewer.ui.dateFormatter
-import java.util.Calendar
 import java.util.Date
 
 //region MainScreen
@@ -52,44 +52,49 @@ import java.util.Date
 @ExperimentalComposeUiApi
 @Composable
 fun MainScreen(
-        viewModelFactory: ViewModelProvider.Factory? = null,
-        viewModel: SystemsViewModel
+    viewModelFactory: ViewModelProvider.Factory? = null,
+    viewModel: SystemsViewModel
 ) {
     val navController = rememberNavController()
     val systems by viewModel.systems.collectAsStateWithLifecycle(emptyList())
     val selectedSystem by viewModel.selectedSystem.collectAsStateWithLifecycle()
     val date by viewModel.selectedDate.collectAsStateWithLifecycle()
-    val openDialog = remember { mutableStateOf(false) }
-    createDatePickerClickAction(openDialog, viewModel)
-    val dateClick = {
-        openDialog.value = true
-    }
+    var openDialog by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopBar(systems, selectedSystem, date, dateClick) },
-            bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
+    Scaffold(
+        topBar = { TopBar(systems, selectedSystem, date, { openDialog = true }) },
+        bottomBar = { BottomBar(tabs = listOf(NavTab.Home, NavTab.Daily), navController) }) {
         NavHost(
-                navController = navController,
-                startDestination = NavTab.Home.route,
-                modifier = Modifier.padding(it)
+            navController = navController,
+            startDestination = NavTab.Home.route,
+            modifier = Modifier.padding(it)
         ) {
             composable(NavTab.Home.route) {
                 HomeScreen(
-                        viewModel = viewModel(
-                                modelClass = HomeViewModel::class.java,
-                                factory = viewModelFactory
-                        )
+                    viewModel = viewModel(
+                        modelClass = HomeViewModel::class.java,
+                        factory = viewModelFactory
+                    )
                 )
             }
 
             composable(NavTab.Daily.route) {
                 DailyScreen(
-                        viewModel = viewModel(
-                                modelClass = DailyViewModel::class.java,
-                                factory = viewModelFactory
-                        )
+                    viewModel = viewModel(
+                        modelClass = DailyViewModel::class.java,
+                        factory = viewModelFactory
+                    )
                 )
             }
         }
+    }
+
+    if (openDialog) {
+        DatePicker(
+            currentTime = viewModel.currentTime.time,
+            onDismiss = { openDialog = false },
+            onConfirm = { viewModel.setNewDate(Date(it)) }
+        )
     }
 }
 //endregion
@@ -109,21 +114,25 @@ fun TopBar(
         }
 
         Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .systemBarsPadding(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
             Row(
-                    modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp),
             ) {
-                Text(text = systems[selectedIndex].name,
-                        style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = systems[selectedIndex].name,
+                    style = MaterialTheme.typography.titleLarge
+                )
                 Icon(imageVector = Icons.Filled.ArrowDropDown, null)
             }
 
             TextButton(
-                    onClick = dateButtonClick
+                onClick = dateButtonClick
             ) {
                 Text(text = dateFormatter.format(date))
             }
@@ -141,23 +150,23 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
     NavigationBar {
         tabs.forEach { tab ->
             NavigationBarItem(
-                    icon = {
-                        Icon(painter = painterResource(id = tab.icon), null)
-                    },
-                    label = { Text(stringResource(id = tab.title)) },
-                    alwaysShowLabel = true,
-                    selected = currentTab == tab.route,
-                    onClick = {
-                        navController.navigate(tab.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
+                icon = {
+                    Icon(painter = painterResource(id = tab.icon), null)
+                },
+                label = { Text(stringResource(id = tab.title)) },
+                alwaysShowLabel = true,
+                selected = currentTab == tab.route,
+                onClick = {
+                    navController.navigate(tab.route) {
+                        navController.graph.startDestinationRoute?.let { route ->
+                            popUpTo(route) {
+                                saveState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
+                        launchSingleTop = true
+                        restoreState = true
                     }
+                }
             )
         }
     }
@@ -167,30 +176,27 @@ fun BottomBar(tabs: List<NavTab>, navController: NavController) {
 //region DatePicker
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun createDatePickerClickAction(openDialogState: MutableState<Boolean>, viewModel: SystemsViewModel) {
-    val current = Calendar.getInstance().apply {
-        time = viewModel.currentTime
-    }
+fun DatePicker(
+    currentTime: Long,
+    onConfirm: (Long) -> Unit = {},
+    onDismiss: () -> Unit = {}
+) {
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = currentTime)
 
-    if (openDialogState.value) {
-        val datePickerState = rememberDatePickerState(initialDisplayedMonthMillis = current.timeInMillis)
-
-        DatePickerDialog(
-                onDismissRequest = {
-                    openDialogState.value = false
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        openDialogState.value = false
-                        datePickerState.selectedDateMillis?.let {
-                            viewModel.setNewDate(Date(it))
-                        }
-                    }) {
-                        Text(text = stringResource(id = R.string.button_ok))
-                    }
-                }) {
-            DatePicker(state = datePickerState)
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                datePickerState.selectedDateMillis?.let {
+                    onDismiss()
+                    onConfirm(it)
+                }
+            }) {
+                Text(text = stringResource(id = R.string.button_ok))
+            }
         }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 //endregion
