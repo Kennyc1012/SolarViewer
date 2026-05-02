@@ -1,8 +1,11 @@
 package com.kennyc.api_enphase.di
 
 import com.kennyc.api_enphase.EnphaseApi
+import com.kennyc.api_enphase.auth.AuthApi
+import com.kennyc.api_enphase.auth.TokenStore
+import com.kennyc.api_enphase.intercepor.AuthInterceptor
 import com.kennyc.api_enphase.intercepor.ErrorInterceptor
-import com.kennyc.api_enphase.intercepor.IdInterceptor
+import com.kennyc.api_enphase.intercepor.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -19,15 +22,54 @@ class EnphaseModule {
 
     @Provides
     @Singleton
+    @Named("auth")
+    fun providesAuthOkHttp(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun providesAuthApi(@Named("auth") okHttpClient: OkHttpClient): AuthApi =
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+            .build()
+            .create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun providesAuthInterceptor(
+        @Named("apiKey") apiKey: String,
+        tokenStore: TokenStore
+    ): AuthInterceptor = AuthInterceptor(apiKey, tokenStore)
+
+    @Provides
+    @Singleton
+    fun providesTokenAuthenticator(
+        authApi: AuthApi,
+        tokenStore: TokenStore,
+        @Named("clientId") clientId: String,
+        @Named("clientSecret") clientSecret: String
+    ): TokenAuthenticator = TokenAuthenticator(authApi, tokenStore, clientId, clientSecret)
+
+    @Provides
+    @Singleton
     fun providesOkHttp(
-        idInterceptor: IdInterceptor,
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator,
         loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
-            .addInterceptor(idInterceptor)
+            .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .addInterceptor(ErrorInterceptor())
+            .authenticator(tokenAuthenticator)
             .build()
     }
 
@@ -35,7 +77,7 @@ class EnphaseModule {
     @Singleton
     fun providesApi(okHttpClient: OkHttpClient): EnphaseApi =
         Retrofit.Builder()
-            .baseUrl("https://api.enphaseenergy.com/api/v2/")
+            .baseUrl("${BASE_URL}api/v4/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
@@ -51,9 +93,7 @@ class EnphaseModule {
             }
         }
 
-    @Provides
-    fun providesIdInterceptor(
-        @Named("appId") appId: String,
-        @Named("userId") userId: String
-    ): IdInterceptor = IdInterceptor(appId, userId)
+    private companion object {
+        const val BASE_URL = "https://api.enphaseenergy.com/"
+    }
 }

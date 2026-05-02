@@ -20,8 +20,10 @@ android {
         targetSdkVersion libs.versions.targetSdk.get().toInteger()
         versionCode 1
         versionName "1.0"
-        buildConfigField "String", "APP_ID", project.APP_ID
-        buildConfigField "String", "USER_ID", project.USER_ID
+        buildConfigField "String", "API_KEY", "\"${project.findProperty('API_KEY')}\""
+        buildConfigField "String", "CLIENT_ID", "\"${project.findProperty('CLIENT_ID')}\""
+        buildConfigField "String", "CLIENT_SECRET", "\"${project.findProperty('CLIENT_SECRET')}\""
+        buildConfigField "String", "REDIRECT_URI", "\"solarviewer://oauth/callback\""
     }
 
     buildTypes {
@@ -65,6 +67,8 @@ dependencies {
     implementation libs.compose.material3
     implementation libs.compose.material.icons.core
 
+    implementation libs.browser
+    implementation libs.okhttp
     implementation libs.activity.compose
     implementation libs.lifecycle.runtime.ktx
     implementation libs.lifecycle.livedata.ktx

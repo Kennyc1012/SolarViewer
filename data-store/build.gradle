@@ -36,4 +36,5 @@ dependencies {
     implementation libs.datastore.preferences.rxjava3
 
     api project(':data')
+    api project(':api-enphase')
 }
