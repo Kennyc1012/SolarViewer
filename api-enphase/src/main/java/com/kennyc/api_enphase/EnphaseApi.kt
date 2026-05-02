@@ -24,7 +24,7 @@ interface EnphaseApi {
         @Query("end_at") endTimeInSeconds: Long?
     ): Single<EnphaseProductionResponse>
 
-    @GET("systems/{systemId}/consumption_stats")
+    @GET("systems/{systemId}/telemetry/consumption_meter")
     fun getConsumptionStats(
         @Path("systemId") systemId: String,
         @Query("start_at") startTimeInSeconds: Long?,
