@@ -7,30 +7,26 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.kennyc.solarviewer.auth.AuthState
 import com.kennyc.solarviewer.auth.EnphaseAuthManager
 import com.kennyc.solarviewer.auth.LoginScreen
 import com.kennyc.solarviewer.ui.AppTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalComposeUiApi
+@AndroidEntryPoint
 class MainActivityCompose : ComponentActivity() {
-    @Inject
-    lateinit var factory: ViewModelProvider.Factory
 
     @Inject
     lateinit var authManager: EnphaseAuthManager
 
-    private val systemsViewModel: SystemsViewModel by viewModels { factory }
+    private val systemsViewModel: SystemsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val app = applicationContext as SolarApp
-        app.component.inject(this)
-
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch { authManager.refreshAuthState() }
@@ -42,7 +38,7 @@ class MainActivityCompose : ComponentActivity() {
                 val authState by authManager.state.collectAsStateWithLifecycle()
 
                 when (val s = authState) {
-                    AuthState.Authorized -> MainScreen(factory, systemsViewModel)
+                    AuthState.Authorized -> MainScreen(systemsViewModel)
                     is AuthState.Error -> LoginScreen(errorMessage = s.message) {
                         lifecycleScope.launch { authManager.startAuthorize(this@MainActivityCompose) }
                     }

@@ -2,6 +2,7 @@ package com.kennyc.solarviewer.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.SolarRepository
 import com.kennyc.solarviewer.data.model.EMPTY_SYSTEM
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock

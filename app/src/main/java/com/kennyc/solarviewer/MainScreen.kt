@@ -29,9 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,7 +51,6 @@ import java.util.Date
 @ExperimentalComposeUiApi
 @Composable
 fun MainScreen(
-    viewModelFactory: ViewModelProvider.Factory? = null,
     viewModel: SystemsViewModel
 ) {
     val navController = rememberNavController()
@@ -70,21 +68,11 @@ fun MainScreen(
             modifier = Modifier.padding(it)
         ) {
             composable(NavTab.Home.route) {
-                HomeScreen(
-                    viewModel = viewModel(
-                        modelClass = HomeViewModel::class.java,
-                        factory = viewModelFactory
-                    )
-                )
+                HomeScreen(viewModel = hiltViewModel<HomeViewModel>())
             }
 
             composable(NavTab.Daily.route) {
-                DailyScreen(
-                    viewModel = viewModel(
-                        modelClass = DailyViewModel::class.java,
-                        factory = viewModelFactory
-                    )
-                )
+                DailyScreen(viewModel = hiltViewModel<DailyViewModel>())
             }
         }
     }

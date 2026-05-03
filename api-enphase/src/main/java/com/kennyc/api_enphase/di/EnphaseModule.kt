@@ -8,6 +8,8 @@ import com.kennyc.api_enphase.intercepor.ErrorInterceptor
 import com.kennyc.api_enphase.intercepor.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -17,7 +19,10 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-class EnphaseModule {
+@InstallIn(SingletonComponent::class)
+object EnphaseModule {
+
+    private const val BASE_URL = "https://api.enphaseenergy.com/"
 
     @Provides
     @Singleton
@@ -89,8 +94,4 @@ class EnphaseModule {
                 else -> HttpLoggingInterceptor.Level.NONE
             }
         }
-
-    private companion object {
-        const val BASE_URL = "https://api.enphaseenergy.com/"
-    }
 }

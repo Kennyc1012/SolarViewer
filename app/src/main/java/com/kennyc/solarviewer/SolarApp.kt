@@ -3,18 +3,13 @@ package com.kennyc.solarviewer
 import android.app.Application
 import android.os.StrictMode
 import com.kennyc.solarviewer.data.Logger
-import com.kennyc.solarviewer.di.components.DaggerAppComponent
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
+@HiltAndroidApp
 class SolarApp : Application() {
 
-    val component by lazy {
-        DaggerAppComponent
-            .builder()
-            .appContext(applicationContext)
-            .isDebug(BuildConfig.DEBUG)
-            .build()
-    }
-
+    @Inject
     lateinit var logger: Logger
 
     override fun onCreate() {
@@ -34,7 +29,5 @@ class SolarApp : Application() {
                     .build()
             )
         }
-
-        logger = component.logger()
     }
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -74,9 +75,10 @@ dependencies {
     implementation libs.lifecycle.viewmodel.compose
     implementation libs.navigation.compose
 
-    // Dagger
-    implementation libs.dagger
-    ksp libs.dagger.compiler
+    // Hilt
+    implementation libs.hilt.android
+    ksp libs.hilt.compiler
+    implementation libs.hilt.navigation.compose
 
     // Modules
     api project(':data')

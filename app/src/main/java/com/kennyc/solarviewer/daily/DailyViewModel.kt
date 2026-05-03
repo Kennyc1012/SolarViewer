@@ -27,8 +27,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 class DailyViewModel @Inject constructor(
     private val repo: SolarRepository,
     private val clock: Clock
