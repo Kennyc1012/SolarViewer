@@ -5,10 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
 import com.kennyc.solarviewer.auth.LoginScreen
 import com.kennyc.solarviewer.data.AuthManager
@@ -31,28 +32,34 @@ class MainActivityCompose : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch { authManager.refreshAuthState() }
-
         handleAuthIntent(intent)
 
         setContent {
             AppTheme {
                 val authState by authManager.state.collectAsStateWithLifecycle()
 
+                val signIn: (() -> Unit) = remember {
+                    {
+                        lifecycleScope.launch {
+                            CustomTabsIntent.Builder().build()
+                                .launchUrl(
+                                    this@MainActivityCompose,
+                                    authManager.buildAuthorizeUri()
+                                )
+                        }
+                    }
+                }
+
                 when (val s = authState) {
                     AuthState.Authorized -> MainScreen(systemsViewModel)
-                    is AuthState.Error -> LoginScreen(errorMessage = s.message) {
-                        lifecycleScope.launch {
-                            CustomTabsIntent.Builder().build()
-                                .launchUrl(this@MainActivityCompose, authManager.buildAuthorizeUri())
-                        }
-                    }
+
+                    is AuthState.Error -> LoginScreen(
+                        errorMessage = s.message,
+                        onSignInClick = signIn
+                    )
+
                     AuthState.Unauthorized,
-                    AuthState.Unknown -> LoginScreen {
-                        lifecycleScope.launch {
-                            CustomTabsIntent.Builder().build()
-                                .launchUrl(this@MainActivityCompose, authManager.buildAuthorizeUri())
-                        }
-                    }
+                    AuthState.Unknown -> LoginScreen(onSignInClick = signIn)
                 }
             }
         }
