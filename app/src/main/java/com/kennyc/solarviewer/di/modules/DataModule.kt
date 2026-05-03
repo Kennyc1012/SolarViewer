@@ -2,10 +2,13 @@ package com.kennyc.solarviewer.di.modules
 
 import android.content.Context
 import com.kennyc.api_enphase.EnphaseApi
+import com.kennyc.api_enphase.auth.AuthApi
 import com.kennyc.api_enphase.auth.TokenStore
 import com.kennyc.data_enphase.EnphaseSolarRepository
+import com.kennyc.data_enphase.auth.EnphaseAuthManager
 import com.kennyc.data_store.PreferenceStore
 import com.kennyc.solarviewer.BuildConfig
+import com.kennyc.solarviewer.data.AuthManager
 import com.kennyc.solarviewer.data.Clock
 import com.kennyc.solarviewer.data.LocalSettings
 import com.kennyc.solarviewer.data.Logger
@@ -48,6 +51,22 @@ object DataModule {
 
     @Provides
     @Singleton
+    fun providesAuthManager(
+        authApi: AuthApi,
+        tokenStore: TokenStore,
+        @Named("clientId") clientId: String,
+        @Named("clientSecret") clientSecret: String,
+        @Named("redirectUri") redirectUri: String,
+    ): AuthManager = EnphaseAuthManager(
+        authApi = authApi,
+        tokenStore = tokenStore,
+        clientId = clientId,
+        clientSecret = clientSecret,
+        redirectUri = redirectUri
+    )
+
+    @Provides
+    @Singleton
     fun providesClock(): Clock = AppClock()
 
     @Provides
@@ -69,4 +88,8 @@ object DataModule {
     @Provides
     @Named("isDebug")
     fun providesIsDebug(): Boolean = BuildConfig.DEBUG
+
+    @Provides
+    @Named("redirectUri")
+    fun providesRedirectUri(): String = BuildConfig.REDIRECT_URI
 }

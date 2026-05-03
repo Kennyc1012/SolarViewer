@@ -35,6 +35,7 @@ dependencies {
     implementation libs.room.runtime
     implementation libs.room.ktx
     implementation libs.coroutines.core
+    implementation libs.okhttp
     ksp libs.room.compiler
 
     api project(":api-enphase")

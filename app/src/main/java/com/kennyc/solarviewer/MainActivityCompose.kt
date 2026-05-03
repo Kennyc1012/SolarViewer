@@ -8,10 +8,11 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
-import com.kennyc.solarviewer.auth.AuthState
-import com.kennyc.solarviewer.auth.EnphaseAuthManager
 import com.kennyc.solarviewer.auth.LoginScreen
+import com.kennyc.solarviewer.data.AuthManager
+import com.kennyc.solarviewer.data.AuthState
 import com.kennyc.solarviewer.ui.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -22,7 +23,7 @@ import javax.inject.Inject
 class MainActivityCompose : ComponentActivity() {
 
     @Inject
-    lateinit var authManager: EnphaseAuthManager
+    lateinit var authManager: AuthManager
 
     private val systemsViewModel: SystemsViewModel by viewModels()
 
@@ -40,11 +41,17 @@ class MainActivityCompose : ComponentActivity() {
                 when (val s = authState) {
                     AuthState.Authorized -> MainScreen(systemsViewModel)
                     is AuthState.Error -> LoginScreen(errorMessage = s.message) {
-                        lifecycleScope.launch { authManager.startAuthorize(this@MainActivityCompose) }
+                        lifecycleScope.launch {
+                            CustomTabsIntent.Builder().build()
+                                .launchUrl(this@MainActivityCompose, authManager.buildAuthorizeUri())
+                        }
                     }
                     AuthState.Unauthorized,
                     AuthState.Unknown -> LoginScreen {
-                        lifecycleScope.launch { authManager.startAuthorize(this@MainActivityCompose) }
+                        lifecycleScope.launch {
+                            CustomTabsIntent.Builder().build()
+                                .launchUrl(this@MainActivityCompose, authManager.buildAuthorizeUri())
+                        }
                     }
                 }
             }
