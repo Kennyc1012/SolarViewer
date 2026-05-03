@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.res.ResourcesCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -149,7 +150,7 @@ private fun generateBarData(
 //endregion
 
 @Composable
-fun DailyScreen(viewModel: DailyViewModel) {
+fun DailyScreen(viewModel: DailyViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val selectedBarPoint by viewModel.selectedBarPoint.collectAsStateWithLifecycle()
     val refresh = { viewModel.refresh() }

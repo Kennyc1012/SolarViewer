@@ -68,11 +68,11 @@ fun MainScreen(
             modifier = Modifier.padding(it)
         ) {
             composable(NavTab.Home.route) {
-                HomeScreen(viewModel = hiltViewModel<HomeViewModel>())
+                HomeScreen()
             }
 
             composable(NavTab.Daily.route) {
-                DailyScreen(viewModel = hiltViewModel<DailyViewModel>())
+                DailyScreen()
             }
         }
     }

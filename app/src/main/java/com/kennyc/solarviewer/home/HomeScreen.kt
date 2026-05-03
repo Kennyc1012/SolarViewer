@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kennyc.solarviewer.R
 import com.kennyc.solarviewer.data.model.SolarSystemReport
 import com.kennyc.solarviewer.ui.*
@@ -278,7 +279,7 @@ fun Content(
 
 //region HomeScreen
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val refresh = {
         viewModel.refresh()
