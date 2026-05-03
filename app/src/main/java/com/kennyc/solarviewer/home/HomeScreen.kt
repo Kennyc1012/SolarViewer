@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,6 +35,7 @@ import com.kennyc.solarviewer.utils.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
+import androidx.compose.ui.platform.LocalLocale
 
 //region StatCard
 @OptIn(ExperimentalMaterial3Api::class)
@@ -185,7 +187,7 @@ fun EnergyPiChart(
 
     val time = SimpleDateFormat(
             "h:mma",
-            Locale.getDefault()
+            LocalLocale.current.platformLocale
     ).format(report.lastReported)
 
     val consumedEnergy = stringResource(
@@ -294,7 +296,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 @Composable
 fun HomeUi(state: UiState, refresh: () -> Unit = {}) {
     val currentOrientation = LocalConfiguration.current.orientation
-    val orientation by remember { mutableStateOf(currentOrientation) }
+    val orientation by remember { mutableIntStateOf(currentOrientation) }
 
     when (state) {
         is ContentState<*> -> {
